@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from uuid import UUID
 from . import models, schemas
 
 def create_book(db: Session, book: schemas.BookCreate):
@@ -10,3 +11,7 @@ def create_book(db: Session, book: schemas.BookCreate):
 
 def get_books(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Book).offset(skip).limit(limit).all()
+
+def get_book(db: Session, book_id: UUID):
+    return db.query(models.Book).filter(models.Book.id == book_id).first()
+

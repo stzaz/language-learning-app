@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+
 
 interface Book {
     id: string;
@@ -42,7 +44,9 @@ const BookList: React.FC = () => {
             <ul>
                 {books.map((book) => (
                     <li key={book.id}>
-                        {book.title} by {book.author}
+                        <Link href={`/books/${book.id}`}>
+                            {book.title} by {book.author}
+                        </Link>
                     </li>
                 ))}
             </ul>
