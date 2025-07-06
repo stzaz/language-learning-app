@@ -33,3 +33,9 @@ def create_book_endpoint(book: schemas.BookCreate, db: Session = Depends(get_db)
     """
     return crud.create_book(db=db, book=book)
 
+@app.get("/books/", response_model=list[schemas.Book])
+def read_books_endpoint(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    Retrieve a list of books from the database.
+    """
+    return crud.get_books(db, skip=skip, limit=limit)
