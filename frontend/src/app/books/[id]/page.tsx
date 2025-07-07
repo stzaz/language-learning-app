@@ -29,6 +29,7 @@ const BookPage = () => {
     const [selectedWord, setSelectedWord] = useState<string | null>(null);
     const [explanation, setExplanation] = useState<string | null>(null);
     const [isExplanationLoading, setIsExplanationLoading] = useState<boolean>(false);
+    const [currentContext, setCurrentContext] = useState<string | null>(null);
 
     useEffect(() => {
         if (!id) {
@@ -83,6 +84,7 @@ const BookPage = () => {
         if (!cleanedWord) return;
 
         setSelectedWord(cleanedWord);
+        setCurrentContext(context);
         setExplanation(null);
         setIsExplanationLoading(true);
 
@@ -113,9 +115,47 @@ const BookPage = () => {
         }
     };
 
+    const handleSaveVocabulary = async () => {
+        if (!selectedWord || !explanation || !currentContext) {
+            alert('Could not save word. Missing information.');
+            return;
+        }
+
+        // In a real app, user_id would come from an auth context/session
+        const vocabularyEntry = {
+            word: selectedWord,
+            definition: explanation,
+            context_sentence: currentContext,
+            user_id: 'user123', // Hardcoded for now
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/vocabulary/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vocabularyEntry),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: 'Failed to save word' }));
+                throw new Error(errorData.detail || 'Failed to save word');
+            }
+
+            alert(`"${selectedWord}" saved to your vocabulary!`);
+            closeExplanation();
+
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+            alert(`Error: ${errorMessage}`);
+        }
+    };
+
     const closeExplanation = () => {
         setSelectedWord(null);
         setExplanation(null);
+        setCurrentContext(null);
     };
 
     if (loading) return <div>Loading...</div>;
@@ -158,7 +198,22 @@ const BookPage = () => {
                         {isExplanationLoading ? (
                             <p>Loading explanation...</p>
                         ) : (
-                            <p style={{ whiteSpace: 'pre-wrap' }}>{explanation}</p>
+                            <>
+                                <p style={{ whiteSpace: 'pre-wrap' }}>{explanation}</p>
+                                <button
+                                    onClick={handleSaveVocabulary}
+                                    style={{
+                                        marginTop: '1rem',
+                                        padding: '0.5rem 1rem',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        backgroundColor: '#f0f0f0',
+                                        width: '100%'
+                                    }}>
+                                    ⭐ Save to Vocabulary
+                                </button>
+                            </>
                         )}
                     </div>
                 </>

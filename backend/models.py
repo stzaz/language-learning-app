@@ -32,3 +32,15 @@ class BookContent(Base):
 
     # This creates the `book_content.book` attribute
     book = relationship("Book", back_populates="content")
+
+
+class Vocabulary(Base):
+    __tablename__ = "vocabulary"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # In a real app with user authentication, this would be a ForeignKey to a users table.
+    user_id = Column(String, index=True, nullable=False)
+    word = Column(String, index=True, nullable=False)
+    definition = Column(Text, nullable=False)
+    context_sentence = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -64,3 +64,26 @@ class ExplainRequest(BaseModel):
 class ExplainResponse(BaseModel):
     explanation: str
 
+
+# ==================================
+# Schemas for Vocabulary
+# ==================================
+
+# Shared properties
+class VocabularyBase(BaseModel):
+    word: str
+    definition: str
+    context_sentence: str
+    user_id: str  # For now, a simple string.
+
+# Properties to receive on item creation
+class VocabularyCreate(VocabularyBase):
+    pass
+
+# Properties to return to client
+class Vocabulary(VocabularyBase):
+    id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

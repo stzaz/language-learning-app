@@ -70,3 +70,23 @@ def explain_word_endpoint(request: schemas.ExplainRequest):
     # for instance, if the AI service fails.
     explanation = ai.get_ai_explanation(word=request.word, context=request.context)
     return schemas.ExplainResponse(explanation=explanation)
+
+
+@app.post("/vocabulary/", response_model=schemas.Vocabulary)
+def create_vocabulary_entry_endpoint(
+    vocabulary: schemas.VocabularyCreate, db: Session = Depends(get_db)
+):
+    """
+    Save a new vocabulary word for a user.
+    """
+    # In a real app, you might check if the word already exists for the user
+    # before creating a duplicate entry.
+    return crud.create_vocabulary_entry(db=db, vocabulary=vocabulary)
+
+
+@app.get("/vocabulary/{user_id}", response_model=list[schemas.Vocabulary])
+def read_vocabulary_for_user_endpoint(user_id: str, db: Session = Depends(get_db)):
+    """
+    Retrieve all saved vocabulary for a specific user.
+    """
+    return crud.get_vocabulary_for_user(db=db, user_id=user_id)

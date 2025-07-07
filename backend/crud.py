@@ -17,3 +17,13 @@ def get_book(db: Session, book_id: UUID):
 
 def get_content_for_book(db: Session, book_id: UUID):
     return db.query(models.BookContent).filter(models.BookContent.book_id == book_id).order_by(models.BookContent.paragraph_index).all()
+
+def create_vocabulary_entry(db: Session, vocabulary: schemas.VocabularyCreate):
+    db_vocab_entry = models.Vocabulary(**vocabulary.model_dump())
+    db.add(db_vocab_entry)
+    db.commit()
+    db.refresh(db_vocab_entry)
+    return db_vocab_entry
+
+def get_vocabulary_for_user(db: Session, user_id: str):
+    return db.query(models.Vocabulary).filter(models.Vocabulary.user_id == user_id).order_by(models.Vocabulary.created_at.desc()).all()
