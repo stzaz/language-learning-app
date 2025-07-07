@@ -51,3 +51,16 @@ class Book(BookBase):
 
     class Config:
         from_attributes = True
+
+
+# ==================================
+# Schemas for AI Explanations
+# ==================================
+
+class ExplainRequest(BaseModel):
+    word: str
+    context: str
+
+class ExplainResponse(BaseModel):
+    explanation: str
+

@@ -15,5 +15,5 @@ def get_books(db: Session, skip: int = 0, limit: int = 100):
 def get_book(db: Session, book_id: UUID):
     return db.query(models.Book).filter(models.Book.id == book_id).first()
 
-
-    
+def get_content_for_book(db: Session, book_id: UUID):
+    return db.query(models.BookContent).filter(models.BookContent.book_id == book_id).order_by(models.BookContent.paragraph_index).all()

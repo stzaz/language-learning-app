@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 from fastapi.middleware.cors import CORSMiddleware
-from . import crud, models, schemas
+from . import ai, crud, models, schemas
 from .database import get_db, engine
 
 # This creates the database tables if they don't exist
@@ -49,3 +49,24 @@ def read_book_endpoint(book_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Book not found")
     return db_book
 
+@app.get("/books/{book_id}/content", response_model=list[schemas.BookContent])
+def read_book_content_endpoint(book_id: UUID, db: Session = Depends(get_db)):
+    """
+    Retrieve all content paragraphs for a specific book.
+    """
+    # First, check if the book exists to return a proper 404
+    db_book = crud.get_book(db, book_id=book_id)
+    if db_book is None:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    return crud.get_content_for_book(db=db, book_id=book_id)
+
+@app.post("/explain", response_model=schemas.ExplainResponse)
+def explain_word_endpoint(request: schemas.ExplainRequest):
+    """
+    Get an AI-powered explanation for a word in a given context.
+    """
+    # In a real app, you might want to add more error handling here,
+    # for instance, if the AI service fails.
+    explanation = ai.get_ai_explanation(word=request.word, context=request.context)
+    return schemas.ExplainResponse(explanation=explanation)
