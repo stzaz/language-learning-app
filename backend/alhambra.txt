@@ -1,0 +1,16 @@
+﻿This is some header text that should be ignored.
+More header text.
+
+*** START OF THE PROJECT GUTENBERG EBOOK LA ALHAMBRA; LEYENDAS ÁRABES ***
+
+En el corazón de Andalucía, donde el sol besa la tierra con un fervor dorado, se alza majestuosa la Alhambra de Granada. Este palacio y fortaleza de los monarcas nazaríes es un monumento eterno a la confluencia de culturas, un poema escrito en piedra y agua que susurra historias de un pasado glorioso.
+
+Sus muros rojizos, que le dan el nombre de "la Roja" (al-Ḥamrā'), esconden patios de ensueño como el de los Leones, donde el murmullo del agua acompaña el silencio de los siglos. Cada azulejo, cada estuco, cada columna, cuenta una leyenda de sultanes, princesas y guerreros que vivieron entre el lujo y la intriga.
+
+Este párrafo es demasiado corto.
+
+Caminar por sus salones es como viajar en el tiempo, una experiencia que transporta al visitante a un mundo de fantasía y esplendor. La Alhambra no es solo un monumento, es el alma de Granada, un tesoro que perdura a través de los tiempos, invitando a soñar con sus leyendas árabes.
+
+*** END OF THE PROJECT GUTENBERG EBOOK LA ALHAMBRA; LEYENDAS ÁRABES ***
+
+This is some footer text that should be ignored.

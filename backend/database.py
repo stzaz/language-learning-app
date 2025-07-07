@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 # For this example, we'll use SQLite.
 # You can replace this with your actual database URL.
-SQLALCHEMY_DATABASE_URL = "sqlite:///./language_learning.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./backend/language_learning.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
