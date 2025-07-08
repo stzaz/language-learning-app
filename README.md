@@ -17,8 +17,8 @@ A digital sanctuary for language learners. This AI-powered reading environment h
 
 This project is being developed in phases:
 
-- **Phase 1: The Core Reader (Complete):** A beautiful reading interface with AI explanations and vocabulary saving.
-- **Phase 2: Deepening Engagement (In Progress):** Introducing active vocabulary review (flashcards/quizzes), text-to-speech audio, and more customization.
+- **Phase 1: The Core Reader (In Progress):** A beautiful reading interface with AI explanations and vocabulary saving.
+- **Phase 2: Deepening Engagement (Future):** Introducing active vocabulary review (flashcards/quizzes), text-to-speech audio, and more customization.
 - **Phase 3: The AI Story Lab (Future):** An ambitious goal to allow users to generate personalized, adaptive stories based on their vocabulary needs.
 
 ---
