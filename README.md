@@ -1,15 +1,25 @@
-# Language Learning Reader
+# The Living Library 📚
 
-A full-stack AI-powered web application that helps users learn languages by reading books with parallel translations and contextual AI explanations.
+A digital sanctuary for language learners. This AI-powered reading environment helps users achieve fluency by reading authentic literature in a calm, immersive, and intelligent interface.
 
 ---
 
 ## ✨ Key Features
 
-- **Parallel Text Display:** View original and translated texts side-by-side.
-- **AI-Powered Explanations:** Click on any word or phrase to get instant definitions, grammar rules, and context from an integrated AI.
-- **Curated Library:** Access a library of public domain books suitable for various learning levels.
-- **Vocabulary Saving:** Save new words to a personal list for future review.
+- **Immersive Reading Experience:** A clean, single-column reading view with beautiful typography and customizable themes (including dark mode) designed to keep you focused on the text.
+- **AI Language Tutor:** Click on any word to get an instant, AI-powered explanation covering its definition, grammatical role, and context within the story.
+- **On-Demand Translations:** Reveal a professional translation on a per-paragraph basis when you need it, encouraging immersion over reliance.
+- **Personal Vocabulary Collection:** Save new words and their rich AI explanations to a personal list for later review.
+
+---
+
+## 🗺️ Project Roadmap
+
+This project is being developed in phases:
+
+- **Phase 1: The Core Reader (Complete):** A beautiful reading interface with AI explanations and vocabulary saving.
+- **Phase 2: Deepening Engagement (In Progress):** Introducing active vocabulary review (flashcards/quizzes), text-to-speech audio, and more customization.
+- **Phase 3: The AI Story Lab (Future):** An ambitious goal to allow users to generate personalized, adaptive stories based on their vocabulary needs.
 
 ---
 
@@ -19,19 +29,17 @@ A full-stack AI-powered web application that helps users learn languages by read
 - **Backend:** Python, FastAPI
 - **Database:** PostgreSQL (using SQLite for local development)
 - **AI Integration:** Google Gemini API
-- **Deployment:** Docker, Google Cloud Run
+- **Deployment:** Docker, Google Cloud Platform (GCP)
 
 ---
 
 ## 🚀 Getting Started
 
-Instructions on how to set up and run the project locally.
-
 ### Prerequisites
 
 - Node.js (v18 or later)
 - Python (v3.9 or later)
-- Docker (for running PostgreSQL)
+- Git
 
 ### Local Setup
 
@@ -42,34 +50,45 @@ Instructions on how to set up and run the project locally.
     cd language-learning-app
     ```
 
-2.  **Set up the backend:**
+2.  **Set up Environment Variables:**
+
+    - You will need a Google Gemini API key.
+    - In the `backend` directory, create a new file named `.env`.
+    - Add your API key to it like this:
+      ```bash
+      # backend/.env
+      GOOGLE_API_KEY="YOUR_API_KEY_HERE"
+      ```
+
+3.  **Set up the Backend:**
 
     ```bash
     cd backend
-    python3 -m venv venv
+    python -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
-    # (Note: You'll need to create a requirements.txt file soon)
+    cd ..
     ```
 
-3.  **Set up the frontend:**
+4.  **Set up the Frontend:**
 
     ```bash
-    cd ../frontend
+    cd frontend
     npm install
     ```
 
-4.  **Run the application:**
-    - In one terminal, run the backend server:
+5.  **Run the Application:**
+
+    - **Terminal 1 (Backend):**
       ```bash
       cd backend
       source venv/bin/activate
       uvicorn main:app --reload
       ```
-    - In a second terminal, run the frontend server:
+    - **Terminal 2 (Frontend):**
       ```bash
       cd frontend
       npm run dev
       ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+6.  Open [http://localhost:3000](http://localhost:3000) in your browser to see the application live.
