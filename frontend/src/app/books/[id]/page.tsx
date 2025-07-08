@@ -3,7 +3,8 @@
 
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import ExplanationModal, { AIExplanation } from '@/components/ExplanationModal'; // Assuming components is in app/
+import ExplanationModal, { AIExplanation } from '@/components/ExplanationModal';
+import Paragraph from '@/components/Paragraph'; // Import the new component
 
 // --- Type Definitions ---
 interface Book {
@@ -11,14 +12,10 @@ interface Book {
     title: string;
     author: string;
     language: string;
-    difficulty_level: number;
-    created_at: string;
 }
 
 interface BookContent {
     id: string;
-    book_id: string;
-    paragraph_index: number;
     original_text: string;
     translated_text: string;
 }
@@ -96,9 +93,7 @@ const BookPage = () => {
                 body: JSON.stringify({ word: cleanedWord, context: context }),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to get explanation from the server.');
-            }
+            if (!response.ok) throw new Error('Failed to get explanation from the server.');
 
             const data: { explanation: AIExplanation } = await response.json();
             setExplanation(data.explanation);
@@ -131,11 +126,9 @@ const BookPage = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(vocabularyEntry),
             });
-            // In a real app, show a success toast/notification instead of an alert
             console.log(`"${selectedWord}" saved to vocabulary!`);
             closeExplanation();
         } catch (err) {
-            // Handle save error, maybe show a notification
             console.error("Failed to save vocabulary:", err);
         }
     };
@@ -153,7 +146,6 @@ const BookPage = () => {
 
     return (
         <div className="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen font-serif">
-            {/* The modal is now handled by its own component */}
             <ExplanationModal
                 word={selectedWord}
                 explanation={explanation}
@@ -162,41 +154,22 @@ const BookPage = () => {
                 onSave={handleSaveVocabulary}
             />
 
-            <main className="max-w-4xl mx-auto p-8 md:p-12">
-                <header className="text-center mb-12 border-b border-slate-200 dark:border-slate-700 pb-8">
+            <main className="max-w-3xl mx-auto p-8 md:p-16">
+                <header className="text-center mb-16 border-b border-slate-200 dark:border-slate-700 pb-10">
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">{book.title}</h1>
                     <h2 className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 mt-2">by {book.author}</h2>
                 </header>
 
-                <div className="space-y-12">
+                <article>
                     {content.map((paragraph) => (
-                        <div key={paragraph.id} className="grid md:grid-cols-2 gap-8 md:gap-12 leading-relaxed">
-                            {/* Original Text Column */}
-                            <div className="text-lg text-slate-800 dark:text-slate-300">
-                                <p>
-                                    {paragraph.original_text.split(/(\s+)/).map((segment, index) => {
-                                        const isWord = segment.trim() !== '';
-                                        return isWord ? (
-                                            <span
-                                                key={index}
-                                                onClick={() => handleWordClick(segment, paragraph.original_text)}
-                                                className="cursor-pointer hover:bg-amber-200/50 dark:hover:bg-amber-800/50 rounded-md transition-colors"
-                                            >
-                                                {segment}
-                                            </span>
-                                        ) : (
-                                            <span key={index}>{segment}</span> // Preserves whitespace
-                                        );
-                                    })}
-                                </p>
-                            </div>
-                            {/* Translated Text Column */}
-                            <div className="text-base text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-200 dark:border-slate-700 pl-6">
-                                <p>{paragraph.translated_text}</p>
-                            </div>
-                        </div>
+                        <Paragraph
+                            key={paragraph.id}
+                            originalText={paragraph.original_text}
+                            translatedText={paragraph.translated_text}
+                            onWordClick={handleWordClick}
+                        />
                     ))}
-                </div>
+                </article>
             </main>
         </div>
     );
