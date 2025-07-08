@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
-from typing import List # Make sure to import List
+from typing import List, Optional
 
 # ==================================
 # Schemas for BookContent
@@ -61,8 +61,15 @@ class ExplainRequest(BaseModel):
     word: str
     context: str
 
+
+class AIExplanation(BaseModel):
+    definition: str
+    part_of_speech: str
+    translation: str
+    contextual_insight: Optional[str] = None
+
 class ExplainResponse(BaseModel):
-    explanation: str
+    explanation: AIExplanation
 
 
 # ==================================

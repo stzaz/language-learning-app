@@ -1,3 +1,11 @@
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Make environment loading robust by specifying the .env path.
+# This should be the first thing to run to ensure variables are set.
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
