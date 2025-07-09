@@ -4,6 +4,7 @@
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import ExplanationModal, { AIExplanation } from '@/components/ExplanationModal';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import Paragraph from '@/components/Paragraph'; // Import the new component
 
 // --- Type Definitions ---
@@ -155,7 +156,10 @@ const BookPage = () => {
             />
 
             <main className="max-w-3xl mx-auto p-8 md:p-16">
-                <header className="text-center mb-16 border-b border-slate-200 dark:border-slate-700 pb-10">
+                <header className="relative text-center mb-16 border-b border-slate-200 dark:border-slate-700 pb-10">
+                    <div className="absolute top-0 right-0">
+                        <ThemeToggleButton />
+                    </div>
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">{book.title}</h1>
                     <h2 className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 mt-2">by {book.author}</h2>
                 </header>
