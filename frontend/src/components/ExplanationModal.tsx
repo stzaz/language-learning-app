@@ -1,9 +1,10 @@
-// frontend/app/components/ExplanationModal.tsx
+// frontend/src/components/ExplanationModal.tsx
 'use client';
 
 import React from 'react';
+import { X } from 'lucide-react'; // Using a standard close icon
 
-// Define the shape of the AI explanation object
+// The interface for the AI explanation data
 export interface AIExplanation {
     definition: string;
     part_of_speech: string;
@@ -11,7 +12,7 @@ export interface AIExplanation {
     contextual_insight?: string;
 }
 
-// Define the props the modal component will accept
+// The props for our modal component
 interface ExplanationModalProps {
     word: string | null;
     explanation: AIExplanation | null;
@@ -21,7 +22,7 @@ interface ExplanationModalProps {
 }
 
 const ExplanationModal: React.FC<ExplanationModalProps> = ({ word, explanation, isLoading, onClose, onSave }) => {
-    // Don't render anything if there's no word selected
+    // Don't render the modal if no word is selected
     if (!word) {
         return null;
     }
@@ -35,7 +36,7 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({ word, explanation, 
                 aria-hidden="true"
             />
 
-            {/* Content: The main modal window */}
+            {/* Content Wrapper: Centers the modal and handles animations */}
             <div
                 className="fixed inset-0 flex items-center justify-center z-50 p-4"
                 role="dialog"
@@ -48,7 +49,7 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({ word, explanation, 
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Modal Header */}
-                    <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
                         <h3 className="text-xl font-serif font-semibold text-slate-800 dark:text-slate-100" id="modal-title">
                             Explanation for <span className="text-amber-600 dark:text-amber-400">&quot;{word}&quot;</span>
                         </h3>
@@ -57,9 +58,7 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({ word, explanation, 
                             className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-full p-1"
                             aria-label="Close"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X size={24} />
                         </button>
                     </div>
 
@@ -72,7 +71,7 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({ word, explanation, 
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <p className="font-serif">Loading explanation...</p>
+                                <p className="font-serif mt-2">Loading explanation...</p>
                             </div>
                         ) : explanation ? (
                             // Content Display

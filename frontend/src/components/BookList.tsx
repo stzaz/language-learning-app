@@ -1,55 +1,51 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import BookCard from './BookCard';
 
-
-interface Book {
+export interface Book {
     id: string;
     title: string;
     author: string;
     language: string;
     difficulty_level: number;
-    created_at: string;
 }
 
-const BookList: React.FC = () => {
+const BookList = () => {
     const [books, setBooks] = useState<Book[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchBooks = async () => {
+            setLoading(true);
+            setError(null);
             try {
                 const response = await fetch('http://127.0.0.1:8000/books/');
                 if (!response.ok) {
-                    throw new Error('Failed to fetch books');
+                    throw new Error('Failed to fetch books from the server.');
                 }
                 const data: Book[] = await response.json();
                 setBooks(data);
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
                 setError(errorMessage);
-                console.error('Error fetching books:', err);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchBooks();
     }, []);
 
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
+    if (loading) return <div className="text-center p-8">Loading...</div>;
+    if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
 
     return (
-        <div>
-            <h2>All Books</h2>
-            <ul>
-                {books.map((book) => (
-                    <li key={book.id}>
-                        <Link href={`/books/${book.id}`}>
-                            {book.title} by {book.author}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {books.map((book) => (
+                <BookCard key={book.id} book={book} />
+            ))}
         </div>
     );
 };
