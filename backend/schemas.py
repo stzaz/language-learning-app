@@ -36,6 +36,10 @@ class BookBase(BaseModel):
     author: str
     language: str
     difficulty_level: int
+    genre: Optional[str] = None
+    cover_image_url: Optional[str] = None
+    progress: Optional[int] = None
+    rating: Optional[float] = None
 
 # Properties to receive on item creation
 class BookCreate(BookBase):

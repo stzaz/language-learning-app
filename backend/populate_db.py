@@ -39,7 +39,12 @@ def populate_database():
             title="La alhambra; leyendas árabes",
             author="Manuel Fernández y González",
             language="es",
-            difficulty_level=3
+            difficulty_level=3,
+            # Add the new fields below
+            genre="Historical Fiction",
+            cover_image_url="https://picsum.photos/seed/alhambra/400/600",
+            progress=65,
+            rating=4.7
         )
         db.add(new_book)
         db.commit()

@@ -1,6 +1,6 @@
 import uuid
 # Add these imports
-from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import UUID
 from .database import Base
@@ -14,6 +14,10 @@ class Book(Base):
     language = Column(String)
     difficulty_level = Column(Integer)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    genre = Column(String, nullable=True)
+    cover_image_url = Column(String, nullable=True)
+    progress = Column(Integer, default=0, nullable=True)
+    rating = Column(Float, nullable=True)
 
     # Add this relationship to the Book model
     # This creates the `book.content` attribute

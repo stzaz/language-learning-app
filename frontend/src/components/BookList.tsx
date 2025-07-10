@@ -9,6 +9,10 @@ export interface Book {
     author: string;
     language: string;
     difficulty_level: number;
+    genre?: string;
+    cover_image_url?: string;
+    progress?: number;
+    rating?: number;
 }
 
 const BookList = () => {
