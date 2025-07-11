@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Lora } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import Header from "../components/Header";
 import "./globals.css";
 
 const lora = Lora({
@@ -30,6 +31,7 @@ export default function RootLayout({
       */}
       <body className={`${lora.className} antialiased bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Header />
           {children}
         </ThemeProvider>
       </body>

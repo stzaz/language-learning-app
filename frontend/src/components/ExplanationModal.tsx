@@ -1,4 +1,3 @@
-// frontend/src/components/ExplanationModal.tsx
 'use client';
 
 import React from 'react';

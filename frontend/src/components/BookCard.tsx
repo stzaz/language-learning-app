@@ -1,4 +1,3 @@
-// frontend/src/components/BookCard.tsx
 'use client';
 
 import React from 'react';

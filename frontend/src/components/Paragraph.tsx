@@ -1,4 +1,3 @@
-// frontend/app/components/Paragraph.tsx
 'use client';
 
 import React, { useState } from 'react';

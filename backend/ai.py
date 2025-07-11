@@ -1,59 +1,65 @@
+# backend/app/api/ai.py
 import os
 import json
+from dotenv import load_dotenv
 import google.generativeai as genai
-from . import schemas
+from .schemas import AIExplanation # Corrected import path
 
-# Fetch the API key from the environment
-GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GOOGLE_API_KEY not found in environment variables. Please set it in your .env file.")
+# Load environment variables from .env file
+load_dotenv()
 
-# Configure the genai library with the API key
-genai.configure(api_key=GEMINI_API_KEY)
+# --- Gemini API Configuration ---
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY environment variable not set.")
+genai.configure(api_key=api_key)
 
-# Initialize the Gemini Pro model. It's good practice to do this once.
-model = genai.GenerativeModel('gemini-1.5-flash')
+# --- In-Memory Cache ---
+# A simple Python dictionary to store explanations we've already fetched.
+explanation_cache = {}
 
-
-def get_ai_explanation(word: str, context: str, language: str = "Spanish") -> schemas.AIExplanation:
+def get_ai_explanation(word: str, context: str, language: str) -> AIExplanation:
     """
-    Generates a structured explanation for a word using the Google Gemini API.
-
-    It sends a detailed prompt to the AI and parses the expected JSON response
-    into an AIExplanation Pydantic model.
+    Gets a detailed, AI-powered explanation for a word, using a cache to avoid repeated API calls.
     """
+    # Create a unique key for the cache based on the word and language.
+    cache_key = f"{language}:{word.lower()}"
+
+    # 1. Check the cache first
+    if cache_key in explanation_cache:
+        print(f"CACHE HIT: Returning cached explanation for '{word}'.")
+        return explanation_cache[cache_key]
+
+    print(f"CACHE MISS: Fetching new explanation for '{word}' from Gemini API.")
+    
+    # 2. If not in cache, call the API
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
     prompt = f"""
-    You are an expert linguistic assistant. Your user is learning {language}.
-    The user has selected the word "{word}" from the following sentence: "{context}".
+    You are an expert linguistic assistant. The user is reading a text in "{language}" and has clicked on the word "{word}".
+    The surrounding context is: "{context}"
 
-    Your task is to provide a clear, structured explanation of this word.
-    Return ONLY a single, valid JSON object with the following exact keys:
-    - "definition": A concise definition of the word in {language}.
-    - "part_of_speech": The grammatical part of speech (e.g., Noun, Verb, Adjective).
-    - "translation": The English translation of the word.
-    - "contextual_insight": A brief explanation of how the word is used in the given context, including any nuances or idiomatic usage. If the context doesn't add much, explain the general usage.
-
-    Example JSON format:
-    {{
-      "definition": "...",
-      "part_of_speech": "...",
-      "translation": "...",
-      "contextual_insight": "..."
-    }}
+    Provide a concise explanation in a JSON object with these exact keys: "definition", "part_of_speech", "translation", "contextual_insight".
+    Do not include any text or markdown outside of the single, valid JSON object.
     """
 
     try:
         response = model.generate_content(prompt)
-        # The API response might include markdown formatting. Clean it up.
-        cleaned_text = response.text.strip().replace("```json", "").replace("```", "").strip()
-        response_dict = json.loads(cleaned_text)
-        return schemas.AIExplanation(**response_dict)
+        response_dict = json.loads(response.text)
+        explanation = AIExplanation(**response_dict)
+
+        # 3. Save the new explanation to the cache before returning
+        explanation_cache[cache_key] = explanation
+        
+        return explanation
+
     except Exception as e:
-        print(f"Error during Gemini API call or parsing: {e}")
-        # In case of any error, return a default error object
-        return schemas.AIExplanation(
-            definition="Could not retrieve explanation.",
+        print(f"An error occurred while getting AI explanation: {e}")
+        # Return a user-friendly error message
+        return AIExplanation(
+            definition="Sorry, an error occurred while fetching the explanation.",
             part_of_speech="Error",
             translation="N/A",
-            contextual_insight="The AI service failed to provide a response. Please check the backend logs and ensure your API key is valid."
+            contextual_insight=str(e),
         )
+

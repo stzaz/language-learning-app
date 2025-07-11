@@ -1,4 +1,3 @@
-// frontend/src/components/ThemeToggleButton.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
