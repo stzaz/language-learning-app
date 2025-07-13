@@ -4,8 +4,9 @@
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import ExplanationModal, { AIExplanation } from '@/components/ExplanationModal';
-import { ThemeToggleButton } from '@/components/ThemeToggleButton';
-import Paragraph from '@/components/Paragraph'; // Import the new component
+import Paragraph from '@/components/Paragraph';
+import SettingsPanel from '@/components/SettingsPanel';
+import { Settings } from 'lucide-react';
 
 // --- Type Definitions ---
 interface Book {
@@ -39,13 +40,17 @@ const BookPage = () => {
     const [isExplanationLoading, setIsExplanationLoading] = useState<boolean>(false);
     const [currentContext, setCurrentContext] = useState<string | null>(null);
 
+    // State for Reader Settings
+    const [fontSize, setFontSize] = useState<string>('text-xl');
+    const [lineHeight, setLineHeight] = useState<string>('leading-loose');
+    const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
     // --- Data Fetching Effect ---
     useEffect(() => {
         if (!id) {
             setLoading(false);
             return;
         }
-
         const fetchBookAndContent = async () => {
             setLoading(true);
             setError(null);
@@ -54,26 +59,20 @@ const BookPage = () => {
                     fetch(`http://127.0.0.1:8000/books/${id}`),
                     fetch(`http://127.0.0.1:8000/books/${id}/content`)
                 ]);
-
                 if (!bookResponse.ok || !contentResponse.ok) {
-                    throw new Error('Failed to fetch book data. Please ensure the book exists and the server is running.');
+                    throw new Error('Failed to fetch book data.');
                 }
-
                 const bookData: Book = await bookResponse.json();
                 const contentData: BookContent[] = await contentResponse.json();
-
                 setBook(bookData);
                 setContent(contentData);
                 document.title = bookData.title || 'The Living Library';
-
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-                setError(errorMessage);
+                setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
                 setLoading(false);
             }
         };
-
         fetchBookAndContent();
     }, [id]);
 
@@ -91,7 +90,7 @@ const BookPage = () => {
             const response = await fetch('http://127.0.0.1:8000/explain', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ word: cleanedWord, context: context }),
+                body: JSON.stringify({ word: cleanedWord, context: context, language: book?.language || 'es' }),
             });
 
             if (!response.ok) throw new Error('Failed to get explanation from the server.');
@@ -110,7 +109,6 @@ const BookPage = () => {
             setIsExplanationLoading(false);
         }
     };
-
     const handleSaveVocabulary = async () => {
         if (!selectedWord || !explanation || !currentContext) return;
 
@@ -118,7 +116,7 @@ const BookPage = () => {
             word: selectedWord,
             definition: JSON.stringify(explanation),
             context_sentence: currentContext,
-            user_id: 'user123', // Hardcoded for now
+            user_id: 'user123',
         };
 
         try {
@@ -133,7 +131,6 @@ const BookPage = () => {
             console.error("Failed to save vocabulary:", err);
         }
     };
-
     const closeExplanation = () => {
         setSelectedWord(null);
         setExplanation(null);
@@ -156,12 +153,32 @@ const BookPage = () => {
             />
 
             <main className="max-w-3xl mx-auto p-8 md:p-16">
-                <header className="relative text-center mb-16 border-b border-slate-200 dark:border-slate-700 pb-10">
-                    <div className="absolute top-0 right-0">
-                        <ThemeToggleButton />
+                <header className="flex items-center justify-between mb-16 border-b border-slate-200 dark:border-slate-700 pb-10">
+                    {/* Left Spacer */}
+                    <div className="w-16"></div>
+
+                    {/* Centered Title */}
+                    <div className="text-center">
+                        <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">{book.title}</h1>
+                        <h2 className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 mt-2">by {book.author}</h2>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">{book.title}</h1>
-                    <h2 className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 mt-2">by {book.author}</h2>
+
+                    {/* Right-aligned Settings Button */}
+                    <div className="w-16 flex justify-end">
+                        <div className="relative">
+                            <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                <Settings size={20} />
+                            </button>
+                            {isSettingsOpen && (
+                                <SettingsPanel
+                                    fontSize={fontSize}
+                                    lineHeight={lineHeight}
+                                    onFontSizeChange={setFontSize}
+                                    onLineHeightChange={setLineHeight}
+                                />
+                            )}
+                        </div>
+                    </div>
                 </header>
 
                 <article>
@@ -171,6 +188,8 @@ const BookPage = () => {
                             originalText={paragraph.original_text}
                             translatedText={paragraph.translated_text}
                             onWordClick={handleWordClick}
+                            fontSize={fontSize}
+                            lineHeight={lineHeight}
                         />
                     ))}
                 </article>
