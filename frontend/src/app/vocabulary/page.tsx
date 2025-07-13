@@ -1,12 +1,16 @@
+// frontend/src/app/vocabulary/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { BookText, PlayCircle } from 'lucide-react';
+import type { AIExplanation } from '@/components/ExplanationModal';
 
-// Define the type for a vocabulary entry based on the backend schema
+// Define the type for a vocabulary entry
 interface VocabularyEntry {
     id: string;
     word: string;
-    definition: string;
+    definition: string; // This is a JSON string of the AIExplanation
     context_sentence: string;
     user_id: string;
     created_at: string;
@@ -17,7 +21,7 @@ const VocabularyPage = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Hardcoded user ID for now. In a real app, this would come from an auth context.
+    // Hardcoded user ID for now
     const userId = 'user123';
 
     useEffect(() => {
@@ -25,58 +29,92 @@ const VocabularyPage = () => {
             setLoading(true);
             setError(null);
             try {
+                // The practice page uses /vocabulary/ to get all words.
+                // This page should fetch for a specific user.
                 const response = await fetch(`http://127.0.0.1:8000/vocabulary/${userId}`);
 
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ detail: 'Failed to fetch vocabulary' }));
-                    throw new Error(errorData.detail || 'Failed to fetch vocabulary');
+                    throw new Error('Failed to fetch your vocabulary.');
                 }
-
                 const data: VocabularyEntry[] = await response.json();
                 setVocabularyList(data);
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-                setError(errorMessage);
+                setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchVocabulary();
-    }, [userId]); // Depend on userId in case it becomes dynamic later
+    }, [userId]);
 
-    if (loading) {
-        return <div style={{ padding: '2rem' }}>Loading your vocabulary...</div>;
-    }
+    const renderContent = () => {
+        if (loading) {
+            return <p className="text-center text-slate-500">Loading your vocabulary...</p>;
+        }
+        if (error) {
+            return <p className="text-center text-red-500">Error: {error}</p>;
+        }
+        if (vocabularyList.length === 0) {
+            return (
+                <div className="text-center py-16">
+                    <BookText size={48} className="mx-auto text-slate-400 mb-4" />
+                    <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200">Your collection is empty.</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">Start reading and save new words to see them here.</p>
+                </div>
+            );
+        }
+        return (
+            <div className="space-y-4">
+                {vocabularyList.map((item) => {
+                    // Safely parse the JSON to get the translation
+                    let translation = '...';
+                    try {
+                        const explanation: AIExplanation = JSON.parse(item.definition);
+                        translation = explanation.translation;
+                    } catch {
+                        // Keep default if parsing fails
+                    }
 
-    if (error) {
-        return <div style={{ padding: '2rem' }}>Error: {error}</div>;
-    }
-
-    return (
-        <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <h1>My Vocabulary</h1>
-            <p>Here are the words you&apos;ve saved. Review them regularly!</p>
-            <hr style={{ margin: '2rem 0' }} />
-
-            {vocabularyList.length === 0 ? (
-                <p>Your vocabulary list is empty. Start reading and save some new words!</p>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {vocabularyList.map((item) => (
-                        <div key={item.id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ marginTop: 0, textTransform: 'capitalize' }}>{item.word}</h3>
-                            <p><strong>Definition:</strong> {item.definition}</p>
-                            <blockquote style={{ fontStyle: 'italic', color: '#555', margin: '1rem 0 0 0', paddingLeft: '1rem', borderLeft: '3px solid #eee' }}>
+                    return (
+                        <div key={item.id} className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-2xl font-serif font-semibold text-slate-900 dark:text-white capitalize">{item.word}</h3>
+                                    <p className="text-amber-600 dark:text-amber-400 capitalize">{translation}</p>
+                                </div>
+                                <span className="text-xs text-slate-400 dark:text-slate-500">
+                                    {new Date(item.created_at).toLocaleDateString()}
+                                </span>
+                            </div>
+                            <blockquote className="mt-3 text-slate-600 dark:text-slate-300 italic border-l-4 border-slate-200 dark:border-slate-600 pl-4">
                                 &quot;{item.context_sentence}&quot;
                             </blockquote>
                         </div>
-                    ))}
+                    );
+                })}
+            </div>
+        );
+    };
+
+    return (
+        <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
+            <main className="max-w-4xl mx-auto px-4 py-12">
+                <div className="flex justify-between items-center mb-10">
+                    <h1 className="text-4xl font-bold font-serif text-slate-900 dark:text-white">
+                        My Vocabulary
+                    </h1>
+                    <Link href="/vocabulary/practice">
+                        <span className="flex items-center gap-2 px-6 py-3 text-base font-semibold text-white bg-amber-600 rounded-lg shadow-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all">
+                            <PlayCircle size={20} />
+                            Start Practice Session
+                        </span>
+                    </Link>
                 </div>
-            )}
+                {renderContent()}
+            </main>
         </div>
     );
 };
 
 export default VocabularyPage;
-

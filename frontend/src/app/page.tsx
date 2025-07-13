@@ -1,24 +1,27 @@
-import Head from 'next/head';
-import BookList from '../components/BookList';
+'use client';
 
-const Home = () => {
+import BookList from '@/components/BookList';
+import StatsDashboard from '@/components/StatsDashboard'; // Import the new component
+
+const HomePage = () => {
     return (
-        <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
-            <Head>
-                <title>The Living Library</title>
-                <meta name="description" content="Learn languages by reading books" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-
-            <main className="container mx-auto px-4 py-12">
-                <h1 className="text-5xl font-bold text-center mb-12 text-slate-900 dark:text-white">
+        // The main background is now handled in layout.tsx or globals.css
+        <main className="container mx-auto px-4 py-12">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl md:text-5xl font-bold font-serif text-slate-900 dark:text-white">
                     The Living Library
                 </h1>
-                <BookList />
-            </main>
-        </div>
+                <p className="text-lg text-slate-500 dark:text-slate-400 mt-2">
+                    Your personal sanctuary for language learning through literature.
+                </p>
+            </div>
+
+            {/* Add the new StatsDashboard component here */}
+            <StatsDashboard />
+
+            <BookList />
+        </main>
     );
 };
 
-export default Home;
-
+export default HomePage;
