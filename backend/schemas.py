@@ -1,3 +1,4 @@
+# backend/schemas.py
 from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
@@ -7,17 +8,14 @@ from typing import List, Optional
 # Schemas for BookContent
 # ==================================
 
-# Shared properties
 class BookContentBase(BaseModel):
     paragraph_index: int
     original_text: str
     translated_text: str
 
-# Properties to receive on item creation
 class BookContentCreate(BookContentBase):
     pass
 
-# Properties to return to client
 class BookContent(BookContentBase):
     id: UUID
     book_id: UUID
@@ -30,7 +28,6 @@ class BookContent(BookContentBase):
 # Schemas for Book
 # ==================================
 
-# Shared properties
 class BookBase(BaseModel):
     title: str
     author: str
@@ -41,16 +38,12 @@ class BookBase(BaseModel):
     progress: Optional[int] = None
     rating: Optional[float] = None
 
-# Properties to receive on item creation
 class BookCreate(BookBase):
     pass
 
-# Properties to return to client
 class Book(BookBase):
     id: UUID
     created_at: datetime
-    # Add this line to represent the relationship
-    # It will expect a list of BookContent schemas
     content: List[BookContent] = []
 
     class Config:
@@ -64,7 +57,6 @@ class Book(BookBase):
 class ExplainRequest(BaseModel):
     word: str
     context: str
-
 
 class AIExplanation(BaseModel):
     definition: str
@@ -80,21 +72,37 @@ class ExplainResponse(BaseModel):
 # Schemas for Vocabulary
 # ==================================
 
-# Shared properties
 class VocabularyBase(BaseModel):
     word: str
     definition: str
     context_sentence: str
-    user_id: str  # For now, a simple string.
 
-# Properties to receive on item creation
 class VocabularyCreate(VocabularyBase):
     pass
 
-# Properties to return to client
 class Vocabulary(VocabularyBase):
     id: UUID
+    user_id: UUID # Updated from str to UUID
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ==================================
+# Schemas for User
+# ==================================
+
+class UserBase(BaseModel):
+    username: str
+
+class UserCreate(UserBase):
+    password: str # Password is required for creation
+
+class User(UserBase):
+    id: UUID
+    created_at: datetime
+    vocabulary: List[Vocabulary] = [] # Include the user's vocabulary list
 
     class Config:
         from_attributes = True

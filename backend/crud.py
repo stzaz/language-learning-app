@@ -1,7 +1,36 @@
 # backend/crud.py
 from sqlalchemy.orm import Session
 from uuid import UUID
-from . import models, schemas
+from . import models, schemas, security # Import the new security module
+
+# --- User CRUD Functions ---
+
+def get_user(db: Session, user_id: UUID):
+    """
+    Retrieve a single user by their ID.
+    """
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+def get_user_by_username(db: Session, username: str):
+    """
+    Retrieve a single user by their username.
+    This is useful for checking if a username is already taken.
+    """
+    return db.query(models.User).filter(models.User.username == username).first()
+
+def create_user(db: Session, user: schemas.UserCreate):
+    """
+    Create a new user in the database.
+    This function hashes the password before storing it.
+    """
+    hashed_password = security.get_password_hash(user.password)
+    db_user = models.User(username=user.username, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+# --- Book CRUD Functions ---
 
 def create_book(db: Session, book: schemas.BookCreate):
     db_book = models.Book(**book.model_dump())
@@ -19,20 +48,28 @@ def get_book(db: Session, book_id: UUID):
 def get_content_for_book(db: Session, book_id: UUID):
     return db.query(models.BookContent).filter(models.BookContent.book_id == book_id).order_by(models.BookContent.paragraph_index).all()
 
-def create_vocabulary_entry(db: Session, vocabulary: schemas.VocabularyCreate):
-    db_vocab_entry = models.Vocabulary(**vocabulary.model_dump())
+
+# --- Vocabulary CRUD Functions ---
+
+def create_vocabulary_entry(db: Session, vocabulary: schemas.VocabularyCreate, user_id: UUID):
+    """
+    Create a new vocabulary entry for a specific user.
+    """
+    # We now pass the user_id explicitly to link the entry to the user
+    db_vocab_entry = models.Vocabulary(**vocabulary.model_dump(), user_id=user_id)
     db.add(db_vocab_entry)
     db.commit()
     db.refresh(db_vocab_entry)
     return db_vocab_entry
 
-# --- Add this new function ---
 def get_all_vocabulary(db: Session, skip: int = 0, limit: int = 100):
     """
     Retrieves all vocabulary entries, ignoring user for now.
     """
     return db.query(models.Vocabulary).order_by(models.Vocabulary.created_at.desc()).offset(skip).limit(limit).all()
-# -----------------------------
 
-def get_vocabulary_for_user(db: Session, user_id: str):
+def get_vocabulary_for_user(db: Session, user_id: UUID): # Updated user_id to UUID
+    """
+    Retrieves all vocabulary for a specific user.
+    """
     return db.query(models.Vocabulary).filter(models.Vocabulary.user_id == user_id).order_by(models.Vocabulary.created_at.desc()).all()
