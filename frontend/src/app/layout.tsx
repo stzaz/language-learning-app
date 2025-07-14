@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Lora } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "../providers/AuthProvider"; // Import the new AuthProvider
 import Header from "../components/Header";
 import "./globals.css";
 
@@ -22,17 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {/*
-        We apply the base styles directly here.
-        - bg-white: The default background color.
-        - dark:bg-slate-900: The background color when the 'dark' class is present.
-        - text-slate-800: The default text color.
-        - dark:text-slate-200: The text color in dark mode.
-      */}
       <body className={`${lora.className} antialiased bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Header />
-          {children}
+          {/* Wrap the application with the AuthProvider */}
+          <AuthProvider>
+            <Header />
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
