@@ -2,15 +2,15 @@
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID # Changed from sqlalchemy.types
+from sqlalchemy.dialects.postgresql import UUID
 from .database import Base
 
-# --- New User Model ---
+# --- Updated User Model ---
 class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False) # Changed from username
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -46,19 +46,16 @@ class BookContent(Base):
 
     book = relationship("Book", back_populates="content")
 
-# --- Updated Vocabulary Model ---
+# --- Existing Vocabulary Model ---
+# No changes needed here, as it was already correctly linked via user_id
 class Vocabulary(Base):
     __tablename__ = "vocabulary"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    
-    # This is now a proper foreign key to the users table
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    
     word = Column(String, index=True, nullable=False)
     definition = Column(Text, nullable=False)
     context_sentence = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # This creates the `vocabulary.owner` attribute
     owner = relationship("User", back_populates="vocabulary")

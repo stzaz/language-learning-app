@@ -1,21 +1,22 @@
 # backend/main.py
 from dotenv import load_dotenv
 from pathlib import Path
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
 
 # --- Robust Environment Loading ---
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
 # --- Local Module Imports ---
-from . import ai, crud, models, schemas
+from . import ai, crud, models, schemas, security
 from .database import get_db, engine
 
-# This creates the database tables if they don't exist
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -25,7 +26,6 @@ origins = [
     "http://localhost",
     "http://localhost:3000",
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -36,17 +36,37 @@ app.add_middleware(
 
 # --- API Endpoints ---
 
-# --- NEW: User Endpoints ---
+# --- User & Auth Endpoints (Updated for Email) ---
 @app.post("/users/", response_model=schemas.User, tags=["Users"])
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
-    Register a new user.
-    Checks if the username is already taken before creating.
+    Register a new user with their email and password.
     """
-    db_user = crud.get_user_by_username(db, username=user.username)
+    db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
+
+@app.post("/token", response_model=schemas.Token, tags=["Users"])
+def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Authenticate user with email (in username field) and password, then return a JWT.
+    """
+    # Note: OAuth2PasswordRequestForm uses the field name "username" by convention,
+    # but we are passing the user's email into it from the frontend.
+    user = crud.authenticate_user(db, email=form_data.username, password=form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # The "sub" (subject) of the token should be the user's unique identifier, which is their email.
+    access_token = security.create_access_token(
+        data={"sub": user.email, "user_id": str(user.id)}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # --- Book Endpoints ---
 @app.post("/books/", response_model=schemas.Book, tags=["Books"])
@@ -73,10 +93,8 @@ def read_book_content_endpoint(book_id: UUID, db: Session = Depends(get_db)):
 
 # --- AI Endpoint ---
 @app.post("/explain", response_model=schemas.ExplainResponse, tags=["AI"])
-def explain_word_endpoint(request: schemas.ExplainRequest, db: Session = Depends(get_db)):
-    # Pass the db session to the AI function if it needs it in the future
+def explain_word_endpoint(request: schemas.ExplainRequest):
     explanation = ai.get_ai_explanation(
-        db=db,
         word=request.word, 
         context=request.context,
         language="es" # Hardcoded for now
@@ -88,8 +106,12 @@ def explain_word_endpoint(request: schemas.ExplainRequest, db: Session = Depends
 def create_vocabulary_entry_endpoint(
     vocabulary: schemas.VocabularyCreate, db: Session = Depends(get_db)
 ):
-    # In a real app, this would get the user_id from the authenticated user token
-    user_id = crud.get_user_by_username(db, "user123").id # Hardcoded for now
+    # This needs to be updated to use the authenticated user's ID
+    # For now, we'll hardcode it to a known user for testing.
+    test_user = crud.get_user_by_email(db, "test@example.com") # Changed to email
+    if not test_user:
+        raise HTTPException(status_code=404, detail="Test user not found. Please register a user with email 'test@example.com'.")
+    user_id = test_user.id
     return crud.create_vocabulary_entry(db=db, vocabulary=vocabulary, user_id=user_id)
 
 @app.get("/vocabulary/", response_model=List[schemas.Vocabulary], tags=["Vocabulary"])
@@ -97,5 +119,5 @@ def read_all_vocabulary_endpoint(skip: int = 0, limit: int = 100, db: Session = 
     return crud.get_all_vocabulary(db, skip=skip, limit=limit)
 
 @app.get("/vocabulary/{user_id}", response_model=List[schemas.Vocabulary], tags=["Vocabulary"])
-def read_vocabulary_for_user_endpoint(user_id: UUID, db: Session = Depends(get_db)): # Updated to UUID
+def read_vocabulary_for_user_endpoint(user_id: UUID, db: Session = Depends(get_db)):
     return crud.get_vocabulary_for_user(db=db, user_id=user_id)

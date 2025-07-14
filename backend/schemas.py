@@ -94,7 +94,7 @@ class Vocabulary(VocabularyBase):
 # ==================================
 
 class UserBase(BaseModel):
-    username: str
+    email: str
 
 class UserCreate(UserBase):
     password: str # Password is required for creation
@@ -106,3 +106,12 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+# --- Add this new schema for the login response ---
+# ==================================
+# Schemas for Token
+# ==================================
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+# ----------------------------------------------------
