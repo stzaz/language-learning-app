@@ -1,5 +1,5 @@
 # backend/schemas.py
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from uuid import UUID
 from datetime import datetime
 from typing import List, Optional
@@ -94,7 +94,7 @@ class Vocabulary(VocabularyBase):
 # ==================================
 
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
 
 class UserCreate(UserBase):
     password: str # Password is required for creation
@@ -111,6 +111,10 @@ class User(UserBase):
 # ==================================
 # Schemas for Token
 # ==================================
+# --- Add this new schema for the token's payload ---
+class TokenData(BaseModel):
+    email: Optional[EmailStr] = None
+
 class Token(BaseModel):
     access_token: str
     token_type: str

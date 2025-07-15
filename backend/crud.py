@@ -1,9 +1,9 @@
 # backend/crud.py
 from sqlalchemy.orm import Session
 from uuid import UUID
-from . import models, schemas, security # Import the new security module
+from . import models, schemas, security # Import the security module
 
-# --- User CRUD Functions ---
+# --- User CRUD Functions (Updated for Email) ---
 
 def get_user(db: Session, user_id: UUID):
     """
@@ -13,13 +13,13 @@ def get_user(db: Session, user_id: UUID):
 
 def get_user_by_email(db: Session, email: str):
     """
-    Retrieve a single user by their email.
+    Retrieve a single user by their email address.
     """
     return db.query(models.User).filter(models.User.email == email).first()
 
 def create_user(db: Session, user: schemas.UserCreate):
     """
-    Create a new user in the database.
+    Create a new user, hashing the password before saving.
     """
     hashed_password = security.get_password_hash(user.password)
     db_user = models.User(email=user.email, hashed_password=hashed_password)
@@ -28,10 +28,10 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
-# --- NEW: Function to authenticate a user ---
 def authenticate_user(db: Session, email: str, password: str):
     """
-    Authenticate a user. Returns the user object if successful, otherwise None.
+    Authenticate a user by checking their email and verifying their password.
+    Returns the user object if successful, otherwise None.
     """
     user = get_user_by_email(db, email=email)
     if not user:
@@ -39,7 +39,6 @@ def authenticate_user(db: Session, email: str, password: str):
     if not security.verify_password(password, user.hashed_password):
         return None
     return user
-# -----------------------------------------
 
 
 # --- Book CRUD Functions ---
@@ -75,7 +74,7 @@ def create_vocabulary_entry(db: Session, vocabulary: schemas.VocabularyCreate, u
 
 def get_all_vocabulary(db: Session, skip: int = 0, limit: int = 100):
     """
-    Retrieves all vocabulary entries, ignoring user for now.
+    Retrieves all vocabulary entries.
     """
     return db.query(models.Vocabulary).order_by(models.Vocabulary.created_at.desc()).offset(skip).limit(limit).all()
 
