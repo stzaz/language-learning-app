@@ -7,6 +7,7 @@ import ExplanationModal, { AIExplanation } from '@/components/ExplanationModal';
 import Paragraph from '@/components/Paragraph';
 import SettingsPanel from '@/components/SettingsPanel';
 import { Settings } from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider'; // Import the useAuth hook
 
 // --- Type Definitions ---
 interface Book {
@@ -27,6 +28,7 @@ const BookPage = () => {
     // --- Hooks ---
     const params = useParams<{ id: string }>();
     const id = params?.id;
+    const { token } = useAuth(); // Get the current user's token
 
     // --- State Management ---
     const [book, setBook] = useState<Book | null>(null);
@@ -109,28 +111,43 @@ const BookPage = () => {
             setIsExplanationLoading(false);
         }
     };
+
+    // --- UPDATED: handleSaveVocabulary now sends the auth token ---
     const handleSaveVocabulary = async () => {
-        if (!selectedWord || !explanation || !currentContext) return;
+        if (!selectedWord || !explanation || !currentContext || !token) {
+            alert("You must be logged in to save words.");
+            return;
+        }
 
         const vocabularyEntry = {
             word: selectedWord,
             definition: JSON.stringify(explanation),
             context_sentence: currentContext,
-            user_id: 'user123',
         };
 
         try {
-            await fetch('http://127.0.0.1:8000/vocabulary/', {
+            const response = await fetch('http://127.0.0.1:8000/vocabulary/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Include the JWT token in the Authorization header
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(vocabularyEntry),
             });
-            console.log(`"${selectedWord}" saved to vocabulary!`);
+
+            if (!response.ok) {
+                throw new Error("Failed to save word. Please try again.");
+            }
+
+            alert(`"${selectedWord}" saved to your vocabulary!`);
             closeExplanation();
         } catch (err) {
             console.error("Failed to save vocabulary:", err);
+            alert(err instanceof Error ? err.message : "An unknown error occurred.");
         }
     };
+
     const closeExplanation = () => {
         setSelectedWord(null);
         setExplanation(null);
@@ -154,16 +171,11 @@ const BookPage = () => {
 
             <main className="max-w-3xl mx-auto p-8 md:p-16">
                 <header className="flex items-center justify-between mb-16 border-b border-slate-200 dark:border-slate-700 pb-10">
-                    {/* Left Spacer */}
                     <div className="w-16"></div>
-
-                    {/* Centered Title */}
                     <div className="text-center">
                         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">{book.title}</h1>
                         <h2 className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 mt-2">by {book.author}</h2>
                     </div>
-
-                    {/* Right-aligned Settings Button */}
                     <div className="w-16 flex justify-end">
                         <div className="relative">
                             <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">

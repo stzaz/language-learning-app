@@ -1,11 +1,11 @@
 // frontend/src/components/Header.tsx
-'use client'; // This component now needs to be a client component to use hooks
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Import the hook
+import { usePathname } from 'next/navigation';
 import { ThemeToggleButton } from './ThemeToggleButton';
-import { useAuth } from '../providers/AuthProvider'; // Import useAuth to check login status
+import { useAuth } from '../providers/AuthProvider'; // Import our new useAuth hook
 
 const Header = () => {
     const pathname = usePathname();
@@ -41,23 +41,30 @@ const Header = () => {
                         </Link>
                     </div>
 
-                    {/* Right-side Actions */}
+                    {/* Right-side Actions: Now dynamic based on auth state */}
                     <div className="flex items-center gap-4">
                         <ThemeToggleButton />
                         {user ? (
                             <>
-                                <span className="text-sm text-slate-600 dark:text-slate-300">Welcome, {user.username}!</span>
+                                <span className="text-sm text-slate-600 dark:text-slate-300 hidden sm:block">
+                                    Welcome, {user.username}!
+                                </span>
                                 <button
                                     onClick={logout}
-                                    className="text-sm text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+                                    className="text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
                                 >
                                     Log Out
                                 </button>
                             </>
                         ) : (
-                            <Link href="/login" className="text-sm font-medium text-amber-600 hover:text-amber-500">
-                                Log In
-                            </Link>
+                            <div className="hidden sm:flex items-center gap-4">
+                                <Link href="/login" className="text-sm font-medium text-amber-600 hover:text-amber-500">
+                                    Log In
+                                </Link>
+                                <Link href="/register" className="text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-md transition-colors">
+                                    Register
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>
