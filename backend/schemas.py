@@ -1,5 +1,5 @@
 # backend/schemas.py
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from uuid import UUID
 from datetime import datetime
 from typing import List, Optional
@@ -20,8 +20,8 @@ class BookContent(BookContentBase):
     id: UUID
     book_id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 # ==================================
@@ -46,9 +46,7 @@ class Book(BookBase):
     created_at: datetime
     content: List[BookContent] = []
 
-    class Config:
-        from_attributes = True
-
+    model_config = ConfigDict(from_attributes=True)
 
 # ==================================
 # Schemas for AI Explanations
@@ -85,8 +83,7 @@ class Vocabulary(VocabularyBase):
     user_id: UUID # Updated from str to UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ==================================
@@ -104,8 +101,7 @@ class User(UserBase):
     created_at: datetime
     vocabulary: List[Vocabulary] = [] # Include the user's vocabulary list
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Add this new schema for the login response ---
 # ==================================
