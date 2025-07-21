@@ -1,7 +1,7 @@
 # backend/schemas.py
 from pydantic import BaseModel, EmailStr, ConfigDict
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional
 
 # ==================================
@@ -21,8 +21,6 @@ class BookContent(BookContentBase):
     book_id: UUID
 
     model_config = ConfigDict(from_attributes=True)
-
-
 
 # ==================================
 # Schemas for Book
@@ -84,6 +82,33 @@ class Vocabulary(VocabularyBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+# ==================================
+# Schemas for Reading Activity
+# ==================================
+
+class ReadingActivityBase(BaseModel):
+    date: date
+    minutes_read: int
+
+class ReadingActivityCreate(ReadingActivityBase):
+    pass
+
+class ReadingActivity(ReadingActivityBase):
+    id: UUID
+    user_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ==================================
+# Schemas for User Stats
+# ==================================
+
+class UserStats(BaseModel):
+    reading_streak: int
+    total_words_learned: int
+    total_minutes_read: int
 
 
 # ==================================

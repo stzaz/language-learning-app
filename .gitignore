@@ -212,3 +212,6 @@ __marimo__/
 
 # Temporary output files
 *.json
+
+#
+.DS_Store

@@ -1,9 +1,25 @@
 # backend/models.py
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey, Float, Date, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from .database import Base
+
+# --- ADD THE NEW ReadingActivity MODEL ---
+class ReadingActivity(Base):
+    __tablename__ = "reading_activities"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, nullable=False)
+    minutes_read = Column(Integer, default=0)
+
+    # A user can only have one activity entry per day
+    __table_args__ = (UniqueConstraint('user_id', 'date', name='_user_date_uc'),)
+
+    # Establish the relationship back to the User
+    user = relationship("User", back_populates="reading_history")
+
 
 # --- Updated User Model ---
 class User(Base):
@@ -16,6 +32,8 @@ class User(Base):
 
     # This creates the `user.vocabulary` attribute
     vocabulary = relationship("Vocabulary", back_populates="owner")
+    # This allows us to easily access a user's activity history via user.reading_history
+    reading_history = relationship("ReadingActivity", back_populates="user", cascade="all, delete-orphan")
 
 # --- Existing Book Model ---
 class Book(Base):
@@ -31,7 +49,6 @@ class Book(Base):
     cover_image_url = Column(String, nullable=True)
     progress = Column(Integer, default=0, nullable=True)
     rating = Column(Float, nullable=True)
-
     content = relationship("BookContent", back_populates="book", cascade="all, delete-orphan")
 
 # --- Existing BookContent Model ---

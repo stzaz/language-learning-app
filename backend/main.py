@@ -59,13 +59,46 @@ def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2Passw
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-# --- NEW: Protected "Me" Endpoint ---
+# --- NEW: User Stats & Activity Endpoints ---
+class LogActivityRequest(schemas.BaseModel):
+    minutes: int
+
 @app.get("/users/me/", response_model=schemas.User, tags=["Users"])
 def read_users_me(current_user: schemas.User = Depends(security.get_current_user)):
     """
     Fetch the currently authenticated user.
     """
     return current_user
+
+@app.post("/users/me/activity", response_model=schemas.ReadingActivity, tags=["Users"])
+def log_reading_activity_endpoint(
+    request: LogActivityRequest,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(security.get_current_user)
+):
+    """
+    Logs reading activity for the current user.
+    If an entry for today exists, it updates the minutes. Otherwise, it creates a new one.
+    """
+    if request.minutes <= 0:
+        raise HTTPException(status_code=400, detail="Minutes must be positive.")
+
+    return crud.log_or_update_reading_activity(
+        db=db, user_id=current_user.id, minutes=request.minutes
+    )
+
+@app.get("/users/me/stats", response_model=schemas.UserStats, tags=["Users"])
+def get_user_stats_endpoint(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(security.get_current_user)
+):
+    """
+    Calculates and returns key stats for the authenticated user's dashboard.
+    """
+    # --- Placeholder Logic for Now ---
+    # We will implement the real calculation logic in the next step.
+    stats = crud.get_user_stats(db=db, user=current_user)
+    return stats
 
 # --- Book Endpoints ---
 @app.get("/books/", response_model=List[schemas.Book], tags=["Books"])
