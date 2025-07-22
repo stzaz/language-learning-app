@@ -1,25 +1,15 @@
-// frontend/src/app/vocabulary/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BookText, PlayCircle } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider'; // Import the useAuth hook
-import type { AIExplanation } from '@/components/ExplanationModal';
-
-// Define the type for a vocabulary entry
-interface VocabularyEntry {
-    id: string;
-    word: string;
-    definition: string;
-    context_sentence: string;
-    user_id: string;
-    created_at: string;
-}
+import { VocabularyItem, AIExplanation } from '@/types';
+import { getUserData } from '../../lib/api';
 
 const VocabularyPage = () => {
     const { user, token } = useAuth(); // Get the user and token from our Auth context
-    const [vocabularyList, setVocabularyList] = useState<VocabularyEntry[]>([]);
+    const [vocabularyList, setVocabularyList] = useState<VocabularyItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -30,17 +20,7 @@ const VocabularyPage = () => {
                 setLoading(true);
                 setError(null);
                 try {
-                    // Fetch the current user's data, which includes their vocabulary
-                    const response = await fetch('http://127.0.0.1:8000/users/me/', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch your vocabulary. Please try logging in again.');
-                    }
-                    const userData = await response.json();
+                    const userData = await getUserData(token);
                     // The user's vocabulary is nested inside the user object
                     setVocabularyList(userData.vocabulary || []);
                 } catch (err) {

@@ -2,8 +2,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import Flashcard, { VocabularyItem } from '@/components/Flashcard';
+import Flashcard from '@/components/Flashcard';
 import { Check, X } from 'lucide-react'; import Link from 'next/link';
+import { VocabularyItem } from '@/types';
+import { getPracticeVocabulary } from '@/lib/api';
 
 const PracticePage = () => {
     // --- State Management ---
@@ -23,9 +25,7 @@ const PracticePage = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch('http://127.0.0.1:8000/vocabulary/');
-                if (!response.ok) throw new Error('Failed to fetch vocabulary.');
-                const data: VocabularyItem[] = await response.json();
+                const data = await getPracticeVocabulary();
                 setVocabulary(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');

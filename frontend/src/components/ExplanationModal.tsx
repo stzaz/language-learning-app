@@ -2,14 +2,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react'; // Using a standard close icon
-
-// The interface for the AI explanation data
-export interface AIExplanation {
-    definition: string;
-    part_of_speech: string;
-    translation: string;
-    contextual_insight?: string;
-}
+import { AIExplanation } from '@/types';
 
 // The props for our modal component
 interface ExplanationModalProps {

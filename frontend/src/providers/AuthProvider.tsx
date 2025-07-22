@@ -3,12 +3,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { User } from '@/types';
 
-// Define the shape of the user object (can be expanded later)
-interface User {
-    username: string;
-    user_id: string;
-}
 
 // Define the shape of the context's value
 interface AuthContextType {

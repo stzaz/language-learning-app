@@ -1,12 +1,12 @@
-// frontend/src/app/register/page.tsx
 'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { registerUser } from '../../lib/api'; // Import our new API function
 
 const RegisterPage = () => {
-    const [email, setEmail] = useState(''); // Changed from username
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,21 +24,9 @@ const RegisterPage = () => {
         }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/users/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email, // Changed from username
-                    password: password,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'An unknown error occurred.');
-            }
+            // --- REFACTORED LOGIC ---
+            // Replaced the inline fetch with our new service function
+            await registerUser(email, password);
 
             alert('Registration successful! You can now log in.');
             router.push('/login');
@@ -52,6 +40,7 @@ const RegisterPage = () => {
     };
 
     return (
+        // ... (The JSX for the form remains exactly the same) ...
         <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
             <div className="w-full max-w-md">
                 <div className="bg-white dark:bg-slate-800 shadow-xl rounded-2xl p-8">
@@ -65,7 +54,7 @@ const RegisterPage = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label
-                                htmlFor="email" // Changed from username
+                                htmlFor="email"
                                 className="block text-sm font-medium text-slate-700 dark:text-slate-300"
                             >
                                 Email Address
@@ -73,7 +62,7 @@ const RegisterPage = () => {
                             <input
                                 id="email"
                                 name="email"
-                                type="email" // Changed to type="email" for better validation
+                                type="email"
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}

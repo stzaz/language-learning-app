@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
-import type { Book } from './BookList';
+import type { Book } from '@/types';
 
 interface BookCardProps {
     book: Book;

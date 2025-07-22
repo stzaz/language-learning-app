@@ -1,17 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { AIExplanation } from './ExplanationModal'; // Re-using our existing type
-
-// Define the shape of a vocabulary item from our API
-export interface VocabularyItem {
-    id: string;
-    word: string;
-    definition: string; // This is a JSON string of the AIExplanation
-    context_sentence: string;
-    user_id: string;
-    created_at: string;
-}
+import { VocabularyItem, AIExplanation } from '@/types';
 
 // The props for our Flashcard component
 interface FlashcardProps {
@@ -82,14 +72,5 @@ const Flashcard: React.FC<FlashcardProps> = ({ item }) => {
         </div>
     );
 };
-
-// Add some global styles needed for the 3D effect
-// You can add this to your globals.css file
-/*
-.perspective-1000 { perspective: 1000px; }
-.transform-style-3d { transform-style: preserve-3d; }
-.rotate-y-180 { transform: rotateY(180deg); }
-.backface-hidden { backface-visibility: hidden; }
-*/
 
 export default Flashcard;

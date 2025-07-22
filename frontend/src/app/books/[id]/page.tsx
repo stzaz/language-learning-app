@@ -3,25 +3,18 @@
 
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import ExplanationModal, { AIExplanation } from '@/components/ExplanationModal';
+import ExplanationModal from '@/components/ExplanationModal';
 import Paragraph from '@/components/Paragraph';
 import SettingsPanel from '@/components/SettingsPanel';
 import { Settings } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider'; // Import the useAuth hook
-
-// --- Type Definitions ---
-interface Book {
-    id: string;
-    title: string;
-    author: string;
-    language: string;
-}
-
-interface BookContent {
-    id: string;
-    original_text: string;
-    translated_text: string;
-}
+import { Book, AIExplanation, BookContent } from '@/types';
+import { // Import all our new API functions
+    getBookDetails,
+    getBookContent,
+    getAIExplanation,
+    saveVocabularyWord
+} from '@/lib/api';
 
 // --- Main Page Component ---
 const BookPage = () => {
@@ -57,15 +50,10 @@ const BookPage = () => {
             setLoading(true);
             setError(null);
             try {
-                const [bookResponse, contentResponse] = await Promise.all([
-                    fetch(`http://127.0.0.1:8000/books/${id}`),
-                    fetch(`http://127.0.0.1:8000/books/${id}/content`)
+                const [bookData, contentData] = await Promise.all([
+                    getBookDetails(id),
+                    getBookContent(id),
                 ]);
-                if (!bookResponse.ok || !contentResponse.ok) {
-                    throw new Error('Failed to fetch book data.');
-                }
-                const bookData: Book = await bookResponse.json();
-                const contentData: BookContent[] = await contentResponse.json();
                 setBook(bookData);
                 setContent(contentData);
                 document.title = bookData.title || 'The Living Library';
@@ -89,16 +77,8 @@ const BookPage = () => {
         setIsExplanationLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/explain', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ word: cleanedWord, context: context, language: book?.language || 'es' }),
-            });
-
-            if (!response.ok) throw new Error('Failed to get explanation from the server.');
-
-            const data: { explanation: AIExplanation } = await response.json();
-            setExplanation(data.explanation);
+            const data = await getAIExplanation(cleanedWord, context, book?.language || 'es');
+            setExplanation(data);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
             setExplanation({
@@ -126,20 +106,7 @@ const BookPage = () => {
         };
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/vocabulary/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Include the JWT token in the Authorization header
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(vocabularyEntry),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to save word. Please try again.");
-            }
-
+            await saveVocabularyWord(token, vocabularyEntry);
             alert(`"${selectedWord}" saved to your vocabulary!`);
             closeExplanation();
         } catch (err) {

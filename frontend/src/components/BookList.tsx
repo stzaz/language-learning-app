@@ -3,18 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import BookCard from './BookCard';
 import { Search } from 'lucide-react';
-
-export interface Book {
-    id: string;
-    title: string;
-    author: string;
-    language: string;
-    difficulty_level: number;
-    genre?: string;
-    cover_image_url?: string;
-    progress?: number;
-    rating?: number;
-}
+import { Book } from '@/types';
+import { getBooks } from '@/lib/api';
 
 const BookList = () => {
     const [books, setBooks] = useState<Book[]>([]);
@@ -30,11 +20,7 @@ const BookList = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch('http://127.0.0.1:8000/books/');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch books from the server.');
-                }
-                const data: Book[] = await response.json();
+                const data = await getBooks();
                 setBooks(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
