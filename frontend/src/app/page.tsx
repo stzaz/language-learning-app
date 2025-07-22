@@ -1,11 +1,11 @@
 'use client';
 
 import BookList from '@/components/BookList';
-import StatsDashboard from '@/components/StatsDashboard'; // Import the new component
+import StatsDashboard from '@/components/StatsDashboard';
+import Recommendations from '@/components/Recommendations'; // 1. Import the new component
 
 const HomePage = () => {
     return (
-        // The main background is now handled in layout.tsx or globals.css
         <main className="container mx-auto px-4 py-12">
             <div className="text-center mb-12">
                 <h1 className="text-4xl md:text-5xl font-bold font-serif text-slate-900 dark:text-white">
@@ -16,9 +16,8 @@ const HomePage = () => {
                 </p>
             </div>
 
-            {/* Add the new StatsDashboard component here */}
             <StatsDashboard />
-
+            <Recommendations />
             <BookList />
         </main>
     );

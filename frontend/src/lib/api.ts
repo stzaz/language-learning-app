@@ -1,4 +1,4 @@
-import { User, UserStats, TokenResponse, Book, BookContent, AIExplanation, VocabularyItem } from "../types"; // We will create this type next
+import { User, UserStats, TokenResponse, Book, BookContent, AIExplanation, VocabularyItem } from "../types";
 
 export const registerUser = async (email: string, password: string): Promise<User> => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/`, {
@@ -135,4 +135,19 @@ export const logReadingActivity = async (token: string, minutes: number): Promis
         },
         body: JSON.stringify({ minutes }),
     });
+};
+
+// --- NEW: Recommendation Function ---
+export const getUserRecommendations = async (token: string): Promise<Book[]> => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/recommendations`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+    if (!response.ok) {
+        // It's okay if this fails (e.g., for a new user), so we can return an empty array.
+        console.error("Failed to fetch recommendations, returning empty list.");
+        return [];
+    }
+    return response.json();
 };
