@@ -16,7 +16,8 @@ We believe that language learning should feel immersive, meaningful, and persona
 - **AI Language Tutor:** Click any word for an AI-powered explanation, including its definition, part of speech, translation, and contextual insight.
 - **On-Demand Translations:** Reveal a high-quality translation on a per-paragraph basis, encouraging immersion over reliance.
 - **Smart Vocabulary Collection:** Save new words and their rich AI explanations to a personal list for later review and practice.
-- **Adaptive Content Library:** Access a growing library of public domain classics, folk tales, and poetry, with content curated for progressive difficulty from A1 to C2 levels.
+- **Personalized Stats Dashboard:** Track your progress with live statistics on your reading streak, total words learned, and time spent reading.
+- **Adaptive Content Library:** Access a growing library of public domain classics, folk tales, and poetry, with content curated for progressive difficulty.
 
 ---
 
@@ -24,20 +25,24 @@ We believe that language learning should feel immersive, meaningful, and persona
 
 Our development is planned in phases to build a rich, comprehensive platform.
 
-- **Phase 1: Core Reader _(In Progress)_**
+- **Phase 1: Core Reader _(✅ Complete)_**
 
+  - ✅ Full user authentication system (Register, Login, Logout).
   - ✅ AI word explanations and vocabulary saving.
   - ✅ Immersive reading interface with on-demand translations.
-  - ⏳ Polishing the UI/UX with theme toggles and refined typography.
-  - ⏳ Curating beginner-friendly content.
+  - ✅ Polished UI/UX with theme toggles and refined typography.
+  - ✅ Curated library of multilingual, beginner-friendly content.
+  - ✅ Centralized API service for clean and maintainable frontend code.
+  - ✅ Comprehensive backend and frontend test suites.
 
-- **Phase 2: Engagement & Tools _(Upcoming)_**
+- **Phase 2: Engagement & Tools _(In Progress)_**
 
-  - ◻️ Flashcard quizzes and a spaced repetition review system.
-  - ◻️ Vocabulary analytics and mastery tracking.
-  - ◻️ Reading goals and streak tracking.
+  - ✅ **Stats Dashboard**: Live tracking of reading streaks, words learned, and minutes read.
+  - ⏳ **Activity Logging**: Implementing the timer to log active reading sessions.
+  - ◻️ **Practice Tools**: Flashcard quizzes and a spaced repetition review system.
+  - ◻️ **Vocabulary Analytics**: Mastery tracking and progress insights.
 
-- **Phase 3: Community & AI Innovation _(Long-Term)_**
+- **Phase 3: Community & AI Innovation _(Upcoming)_**
   - ◻️ AI-generated adaptive stories using a learner's vocabulary.
   - ◻️ Community features like book clubs and study groups.
   - ◻️ Advanced grammar and cultural context explanations.
@@ -50,6 +55,7 @@ Our development is planned in phases to build a rich, comprehensive platform.
 - **Backend**: FastAPI (Python)
 - **Database**: PostgreSQL (using SQLite for local dev)
 - **AI Integration**: Google Gemini API
+- **Testing**: Pytest (Backend), Jest & React Testing Library (Frontend)
 - **Deployment**: Docker, Google Cloud Platform (GCP)
 
 ---
