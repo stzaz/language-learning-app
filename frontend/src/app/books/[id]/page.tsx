@@ -7,13 +7,14 @@ import ExplanationModal from '@/components/ExplanationModal';
 import Paragraph from '@/components/Paragraph';
 import SettingsPanel from '@/components/SettingsPanel';
 import { Settings } from 'lucide-react';
-import { useAuth } from '@/providers/AuthProvider'; // Import the useAuth hook
+import { useAuth } from '@/providers/AuthProvider';
 import { Book, AIExplanation, BookContent } from '@/types';
-import { // Import all our new API functions
+import {
     getBookDetails,
     getBookContent,
     getAIExplanation,
-    saveVocabularyWord
+    saveVocabularyWord,
+    logReadingActivity // Import our new activity logging function
 } from '@/lib/api';
 
 // --- Main Page Component ---
@@ -66,6 +67,31 @@ const BookPage = () => {
         fetchBookAndContent();
     }, [id]);
 
+    // --- NEW: Activity Logging Effect ---
+    useEffect(() => {
+        // Only start the timer if the user is logged in (we have a token)
+        if (!token) {
+            return;
+        }
+
+        // Set up an interval to log activity every 60 seconds
+        const intervalId = setInterval(() => {
+            console.log('Logging 1 minute of reading activity...');
+            try {
+                logReadingActivity(token, 1);
+            } catch (error) {
+                console.error("Failed to log reading activity:", error);
+            }
+        }, 60000); // 60,000 milliseconds = 1 minute
+
+        // This is the cleanup function. It runs when the component unmounts.
+        return () => {
+            console.log('User navigated away. Stopping activity timer.');
+            clearInterval(intervalId);
+        };
+    }, [token]); // The effect depends on the token, so it will start/stop on login/logout.
+
+
     // --- Event Handlers ---
     const handleWordClick = async (word: string, context: string) => {
         const cleanedWord = word.replace(/[.,¡!¿?:"“”'‘’]/g, '').trim();
@@ -92,7 +118,6 @@ const BookPage = () => {
         }
     };
 
-    // --- UPDATED: handleSaveVocabulary now sends the auth token ---
     const handleSaveVocabulary = async () => {
         if (!selectedWord || !explanation || !currentContext || !token) {
             alert("You must be logged in to save words.");
