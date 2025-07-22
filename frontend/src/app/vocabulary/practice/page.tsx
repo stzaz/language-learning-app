@@ -5,9 +5,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Flashcard from '@/components/Flashcard';
 import { Check, X } from 'lucide-react'; import Link from 'next/link';
 import { VocabularyItem } from '@/types';
+import { useAuth } from '@/providers/AuthProvider';
 import { getPracticeVocabulary } from '@/lib/api';
 
 const PracticePage = () => {
+    const { user, token } = useAuth();
     // --- State Management ---
     const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,20 +23,27 @@ const PracticePage = () => {
 
     // --- Data Fetching ---
     useEffect(() => {
-        const fetchVocabulary = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const data = await getPracticeVocabulary();
-                setVocabulary(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchVocabulary();
-    }, []);
+        // Only fetch if we have a token
+        if (token) {
+            const fetchVocabulary = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    // 4. Call the authenticated API function with the token
+                    const data = await getPracticeVocabulary(token);
+                    setVocabulary(data);
+                } catch (err) {
+                    setError(err instanceof Error ? err.message : 'An unknown error occurred');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchVocabulary();
+        } else {
+            // If there's no token, don't try to load
+            setLoading(false);
+        }
+    }, [token]); // The effect now depends on the token
 
     // Memoize the current item to prevent re-renders
     const currentItem = useMemo(() => {
@@ -77,6 +86,16 @@ const PracticePage = () => {
     const renderContent = () => {
         if (loading) return <p className="text-center text-slate-500">Loading your vocabulary...</p>;
         if (error) return <p className="text-center text-red-500">Error: {error}</p>;
+
+        // 5. Add a check for a logged-out user
+        if (!user) {
+            return (
+                <div className="text-center">
+                    <p className="text-slate-500 mb-4">Please log in to start a practice session.</p>
+                    <Link href="/login" className="text-amber-600 hover:underline">Log In</Link>
+                </div>
+            );
+        }
         if (vocabulary.length === 0) {
             return (
                 <div className="text-center">

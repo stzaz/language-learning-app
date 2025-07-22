@@ -105,11 +105,20 @@ export const saveVocabularyWord = async (
     return response.json();
 };
 
-export const getPracticeVocabulary = async (): Promise<VocabularyItem[]> => {
-    // This endpoint fetches all vocabulary for the public practice page for now
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vocabulary/`);
-    if (!response.ok) throw new Error('Failed to fetch vocabulary for practice session.');
-    return response.json();
+export const getPracticeVocabulary = async (token: string): Promise<VocabularyItem[]> => {
+    // This now fetches the user's specific vocabulary, not the public list.
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch your vocabulary. Please try logging in again.');
+    }
+
+    const userData: User = await response.json();
+    return userData.vocabulary || []; // Return the vocabulary list from the user object
 };
 
 export const fetchUserStats = async (token: string): Promise<UserStats> => {
