@@ -123,6 +123,56 @@ def get_user_stats(db: Session, user: models.User) -> schemas.UserStats:
         total_minutes_read=total_minutes_read
     )
 
+# --- NEW: User-Specific Book Recommendation Logic ---
+def get_user_recommendations(db: Session, user: models.User, limit: int = 3) -> list[models.Book]:
+    """
+    Generates book recommendations for a specific user.
+    It finds the user's most-progressed book and recommends similar ones.
+    """
+    # 1. Find the user's most-progressed book link.
+    source_link = db.query(models.UserBookLink).filter(
+        models.UserBookLink.user_id == user.id
+    ).order_by(models.UserBookLink.progress.desc()).first()
+
+    if not source_link:
+        # Fallback: If user has no progress, maybe recommend popular books later.
+        # For now, return an empty list.
+        return []
+
+    source_book = source_link.book
+
+    # 2. Get IDs of all books the user has in their library to exclude them.
+    user_book_ids = {link.book_id for link in user.books_in_library}
+
+    # 3. Get all candidate books, excluding the source and user's library books.
+    candidate_books = db.query(models.Book).filter(
+        models.Book.id != source_book.id,
+        models.Book.id.notin_(user_book_ids)
+    ).all()
+
+    # 4. Score the candidate books
+    recommendation_scores = []
+    for book in candidate_books:
+        score = 0
+        # Score based on genre match
+        if book.genre and book.genre == source_book.genre:
+            score += 2
+        # Score based on difficulty level
+        difficulty_difference = abs(book.difficulty_level - source_book.difficulty_level)
+        if difficulty_difference == 0:
+            score += 2
+        elif difficulty_difference == 1:
+            score += 1
+
+        if score > 0:
+            recommendation_scores.append((score, book))
+
+    # 5. Sort by score and return the top results
+    recommendation_scores.sort(key=lambda x: x[0], reverse=True)
+    recommended_books = [book for score, book in recommendation_scores]
+    
+    return recommended_books[:limit]
+
 # --- Book CRUD Functions ---
 
 def create_book(db: Session, book: schemas.BookCreate):

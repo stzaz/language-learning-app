@@ -20,6 +20,18 @@ class ReadingActivity(Base):
     # Establish the relationship back to the User
     user = relationship("User", back_populates="reading_history")
 
+# --- NEW: UserBookLink Model ---
+# This table tracks a user's personal progress in a specific book
+class UserBookLink(Base):
+    __tablename__ = "user_book_links"
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)
+    book_id = Column(UUID(as_uuid=True), ForeignKey("books.id"), primary_key=True)
+    progress = Column(Integer, default=0)
+    last_read_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="books_in_library")
+    book = relationship("Book", back_populates="users_tracking_progress")
 
 # --- Updated User Model ---
 class User(Base):
@@ -34,6 +46,8 @@ class User(Base):
     vocabulary = relationship("Vocabulary", back_populates="owner")
     # This allows us to easily access a user's activity history via user.reading_history
     reading_history = relationship("ReadingActivity", back_populates="user", cascade="all, delete-orphan")
+    # This checks the current books in the user's library
+    books_in_library = relationship("UserBookLink", back_populates="user", cascade="all, delete-orphan")
 
 # --- Existing Book Model ---
 class Book(Base):
@@ -47,9 +61,9 @@ class Book(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     genre = Column(String, nullable=True)
     cover_image_url = Column(String, nullable=True)
-    progress = Column(Integer, default=0, nullable=True)
     rating = Column(Float, nullable=True)
     content = relationship("BookContent", back_populates="book", cascade="all, delete-orphan")
+    users_tracking_progress = relationship("UserBookLink", back_populates="book", cascade="all, delete-orphan")
 
 # --- Existing BookContent Model ---
 class BookContent(Base):

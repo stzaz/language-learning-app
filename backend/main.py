@@ -95,10 +95,19 @@ def get_user_stats_endpoint(
     """
     Calculates and returns key stats for the authenticated user's dashboard.
     """
-    # --- Placeholder Logic for Now ---
-    # We will implement the real calculation logic in the next step.
     stats = crud.get_user_stats(db=db, user=current_user)
     return stats
+
+@app.get("/users/me/recommendations", response_model=list[schemas.Book], tags=["Users"])
+def get_user_recommendations_endpoint(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(security.get_current_user)
+):
+    """
+    Generates and returns book recommendations for the currently authenticated user.
+    """
+    recommendations = crud.get_user_recommendations(db=db, user=current_user)
+    return recommendations
 
 # --- Book Endpoints ---
 @app.get("/books/", response_model=List[schemas.Book], tags=["Books"])

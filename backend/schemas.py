@@ -33,7 +33,6 @@ class BookBase(BaseModel):
     difficulty_level: int
     genre: Optional[str] = None
     cover_image_url: Optional[str] = None
-    progress: Optional[int] = None
     rating: Optional[float] = None
 
 class BookCreate(BookBase):
@@ -139,4 +138,19 @@ class TokenData(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-# ----------------------------------------------------
+
+# ==================================
+# Schemas for User-Book Link
+# ==================================
+class UserBookLinkBase(BaseModel):
+    progress: int
+
+class UserBookLinkCreate(UserBookLinkBase):
+    user_id: UUID
+    book_id: UUID
+
+class UserBookLink(UserBookLinkBase):
+    user_id: UUID
+    book_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
