@@ -1,21 +1,27 @@
 # 📚 The Living Library: A Digital Sanctuary for Language Learners
 
-**The Living Library** is an AI-powered reading platform designed to help language learners achieve fluency by engaging with authentic literature in a serene, focused, and intelligent environment.
+**The Living Library** is an AI-powered reading platform designed to help language learners achieve fluency by engaging with authentic literature. Our platform implements a scientifically-backed methodology in a serene, focused, and intelligent environment.
 
 ---
 
-## ✨ Our Philosophy
+## ✨ Our Methodology
 
-We believe that language learning should feel immersive, meaningful, and personally rewarding. Our goal is to create a beautifully crafted environment that adapts to your journey, nurturing understanding through real stories, word by word. By combining the timeless power of authentic literature with modern AI and official proficiency frameworks, we provide a unique path to both fluency and certification success.
+We believe language learning should be immersive, meaningful, and effective. Our approach is grounded in established research in second language acquisition and cognitive psychology.
+
+- **Comprehensible Input:** Our core principle is Dr. Stephen Krashen's "Input Hypothesis." We facilitate learning by providing authentic texts where you already understand most of the words, which research shows is the optimal state for naturally acquiring new vocabulary and grammar.
+- **Lowering the Affective Filter:** We've designed our AI tutor to be a calm, on-demand assistant. This reduces the anxiety and pressure often associated with language learning (the "affective filter"), creating a serene mental space where your brain is most receptive to learning.
+- **Contextual & Spaced Repetition:** Memory research proves that we retain information best when it's learned in context and reviewed over time. Our tools are built to leverage these principles for long-term retention, not just short-term memorization.
+
+By combining the timeless power of authentic literature with a scientific learning methodology, we provide a unique path to both genuine fluency and certification success.
 
 ---
 
 ## 📖 Core Features
 
 - **Immersive Reading Experience:** A clean, single-column reading layout with elegant typography and light/dark modes to keep you focused.
-- **AI Language Tutor:** Click any word for an AI-powered explanation, including its definition, part of speech, translation, and contextual insight.
+- **AI Language Tutor:** Click any word for an AI-powered explanation. Our tutor is designed to be non-intrusive, supporting your reading flow without breaking it.
 - **On-Demand Translations:** Reveal a high-quality translation on a per-paragraph basis, encouraging immersion over reliance.
-- **Smart Vocabulary Collection:** Save new words and their rich AI explanations to a personal list for later review and practice.
+- **Context-Rich Vocabulary Collection:** Save new words to a personal list. We automatically capture the word, its AI explanation, **and the original sentence**, creating powerful, context-rich flashcards for effective review.
 - **Certification-Aligned Learning:** Progress tracking aligned with DELE and SIELE proficiency frameworks for measurable exam preparation.
 - **Personal Library System:** Add books from our curated catalog to your personal reading collection with progress tracking across devices.
 - **Personalized Stats Dashboard:** Track your progress with live statistics on your reading streak, total words learned, and time spent reading.
@@ -27,50 +33,39 @@ We believe that language learning should feel immersive, meaningful, and persona
 
 Our development is planned in phases to build a rich, comprehensive platform.
 
-- **Phase 1: Core Reader \*\*\***(✅ Complete)\*\*\*
+- **Phase 1: Core Reader** _(✅ Complete)_
 
-  - ✅ Full user authentication system (Register, Login, Logout).
-  - ✅ AI word explanations and vocabulary saving.
+  - ✅ Full user authentication system.
+  - ✅ AI word explanations and context-rich vocabulary saving.
   - ✅ Immersive reading interface with on-demand translations.
   - ✅ Polished UI/UX with theme toggles and refined typography.
   - ✅ Curated library of multilingual, beginner-friendly content.
   - ✅ Personal library system with progress tracking.
-  - ✅ Centralized API service for clean and maintainable frontend code.
-  - ✅ Comprehensive backend and frontend test suites.
+  - ✅ Centralized API service and comprehensive test suites.
 
-- **Phase 2: Engagement & Discovery \*\*\***(In Progress)\*\*\*
+- **Phase 2: Engagement & Discovery** _(In Progress)_
 
   - ✅ **Stats Dashboard**: Live tracking of reading streaks, words learned, and minutes read.
   - ⏳ **Activity Logging**: Implementing the timer to log active reading sessions.
-  - ⏳ **Smart Recommendations**: Personalized book suggestions based on difficulty level, vocabulary overlap, and user preferences.
-  - ⏳ **Certification Tracking**: DELE and SIELE vocabulary coverage analysis and progress monitoring.
-  - ◻️ **Enhanced Discovery**: Advanced search, filtering, and CEFR-aligned difficulty ratings.
-  - ◻️ **Practice Tools**: Flashcard quizzes and spaced repetition review system.
-  - ◻️ **Vocabulary Analytics**: Mastery tracking and progress insights.
+  - ⏳ **Book Readiness Score**: A metric to help users choose books within their "comprehensible input" zone.
+  - ⏳ **Smart Recommendations**: Personalized book suggestions based on difficulty level and vocabulary overlap.
+  - ⏳ **Certification Tracking**: DELE and SIELE vocabulary coverage analysis.
+  - ◻️ **Practice Tools**: Context-based flashcard quizzes using a Spaced Repetition System (SRS).
 
-- **Phase 3: Community & AI Innovation \*\*\***(Upcoming)\*\*\*
-  - ◻️ **AI Learning Pathfinder**: Advanced optimization algorithms to create exam-optimized reading sequences for DELE/SIELE preparation and maximum learning efficiency.
+- **Phase 3: Community & AI Innovation** _(Upcoming)_
+  - ◻️ **AI Learning Pathfinder**: An advanced algorithm to generate personalized reading sequences that maintain the optimal 95-98% comprehension rate, creating the most efficient path to exam readiness.
   - ◻️ **AI Story Lab**: Generate adaptive stories using a learner's saved vocabulary.
   - ◻️ **Community Features**: Book clubs, reading challenges, and study groups.
-  - ◻️ **Advanced AI Tutoring**: Enhanced grammar explanations and cultural context insights.
-
----
-
-## 📚 Content Library Architecture
-
-- **Global Catalog**: Comprehensive collection of public domain classics, folk tales, and poetry with AI-powered difficulty assessment
-- **Certification Alignment**: Content analyzed and tagged for DELE and SIELE vocabulary coverage and proficiency level alignment
-- **Personal Libraries**: Users build personalized collections from the global catalog with individual progress tracking
-- **Smart Curation**: Content selected for progressive difficulty and optimal language learning value
-- **Lazy Loading**: Efficient browsing experience with on-demand content delivery
 
 ---
 
 ## 🎯 Unique Value Proposition
 
-**Where Literature Meets Language Certification**
+**An Evidence-Based Path to Fluency and Certification**
 
-The Living Library is the only platform that combines the joy of reading authentic literature with scientifically optimized preparation for official language proficiency exams. Our AI Learning Pathfinder creates personalized reading sequences that build fluency while systematically covering DELE and SIELE vocabulary requirements - making exam preparation engaging rather than tedious.
+The Living Library is the only platform that transforms the joy of reading into a scientifically-optimized engine for language acquisition. While other apps focus on decontextualized drills, we leverage the proven power of **comprehensible input** from authentic literature.
+
+Our **AI Learning Pathfinder** is designed to create a personalized reading journey that systematically prepares you for official exams like DELE and SIELE, making exam prep engaging and deeply effective, rather than tedious. We don't just teach you words; we provide a methodology for acquiring a language.
 
 ---
 
