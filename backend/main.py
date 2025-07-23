@@ -7,7 +7,7 @@ from typing import List
 from uuid import UUID
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 
 # --- Robust Environment Loading ---
 env_path = Path(__file__).parent / '.env'
@@ -138,25 +138,49 @@ def explain_word_endpoint(request: schemas.ExplainRequest):
     )
     return schemas.ExplainResponse(explanation=explanation)
 
-# --- Vocabulary Endpoints (Updated) ---
+# --- Vocabulary Endpoints (CLEANED UP AND REORDERED) ---
+
+@app.get("/vocabulary/due-for-review", response_model=list[schemas.Vocabulary], tags=["Vocabulary"])
+def get_due_vocabulary_for_user_endpoint(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(security.get_current_user)
+):
+    """ Fetches vocabulary words that are due for review for the current user. """
+    due_words = db.query(models.Vocabulary).filter(
+        models.Vocabulary.user_id == current_user.id,
+        models.Vocabulary.next_review_at <= datetime.now(timezone.utc)
+    ).all()
+    return due_words
+
 @app.post("/vocabulary/", response_model=schemas.Vocabulary, tags=["Vocabulary"])
 def create_vocabulary_entry_endpoint(
-    vocabulary: schemas.VocabularyCreate, 
+    vocabulary: schemas.VocabularyCreate,
     db: Session = Depends(get_db),
-    current_user: schemas.User = Depends(security.get_current_user) # This protects the route
+    current_user: schemas.User = Depends(security.get_current_user)
 ):
-    """
-    Save a new vocabulary word for the currently authenticated user.
-    """
-    # The user_id now comes from the authenticated user's token, not hardcoded.
+    """ Save a new vocabulary word for the currently authenticated user. """
     return crud.create_vocabulary_entry(db=db, vocabulary=vocabulary, user_id=current_user.id)
 
-@app.get("/vocabulary/", response_model=List[schemas.Vocabulary], tags=["Vocabulary"])
-def read_all_vocabulary_endpoint(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    # This endpoint remains public for now for the practice page
-    return crud.get_all_vocabulary(db, skip=skip, limit=limit)
+@app.post("/vocabulary/{vocab_id}/review", response_model=schemas.Vocabulary, tags=["Vocabulary"])
+def review_vocabulary_word_endpoint(
+    vocab_id: UUID,
+    request: schemas.ReviewRequest,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(security.get_current_user)
+):
+    """ Updates the SRS data for a specific vocabulary word after a user reviews it. """
+    vocab_item = db.query(models.Vocabulary).filter(
+        models.Vocabulary.id == vocab_id,
+        models.Vocabulary.user_id == current_user.id
+    ).first()
 
-@app.get("/vocabulary/{user_id}", response_model=List[schemas.Vocabulary], tags=["Vocabulary"])
-def read_vocabulary_for_user_endpoint(user_id: UUID, db: Session = Depends(get_db)):
-    # In a real app, you would also protect this to ensure a user can only see their own vocabulary
-    return crud.get_vocabulary_for_user(db=db, user_id=user_id)
+    if not vocab_item:
+        raise HTTPException(status_code=404, detail="Vocabulary item not found.")
+    if not (0 <= request.performance_rating <= 5):
+        raise HTTPException(status_code=400, detail="Performance rating must be between 0 and 5.")
+
+    return crud.update_vocabulary_srs(
+        db=db,
+        vocab_item=vocab_item,
+        performance_rating=request.performance_rating
+    )

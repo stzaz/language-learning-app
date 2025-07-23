@@ -1,8 +1,7 @@
-# backend/crud.py
 from sqlalchemy.orm import Session
 from uuid import UUID
-from datetime import date, timedelta
-from . import models, schemas, security # Import the security module
+from datetime import date, datetime, timedelta, timezone
+from . import models, schemas, security
 
 
 # --- User CRUD Functions (Updated for Email) ---
@@ -215,3 +214,43 @@ def get_vocabulary_for_user(db: Session, user_id: UUID):
     Retrieves all vocabulary for a specific user.
     """
     return db.query(models.Vocabulary).filter(models.Vocabulary.user_id == user_id).order_by(models.Vocabulary.created_at.desc()).all()
+
+# --- NEW: SRS Logic Function ---
+def update_vocabulary_srs(db: Session, vocab_item: models.Vocabulary, performance_rating: int):
+    """
+    Updates the Spaced Repetition System (SRS) data for a vocabulary item
+    based on the user's performance.
+
+    Args:
+        vocab_item: The vocabulary item to update.
+        performance_rating: A rating of how well the user knew the word (e.g., 0-5).
+                          A rating of 3 or higher means the user remembered the word.
+    """
+    if performance_rating >= 3:
+        # User remembered the word
+        if vocab_item.interval == 1:
+            # First time remembered correctly, interval becomes 6 days
+            new_interval = 6
+        else:
+            # Subsequent correct recalls
+            new_interval = round(vocab_item.interval * vocab_item.ease_factor)
+    else:
+        # User forgot the word, reset the interval
+        new_interval = 1
+
+    # Update the ease factor based on performance
+    # This is the core of the SM-2 algorithm
+    new_ease_factor = vocab_item.ease_factor + (0.1 - (5 - performance_rating) * (0.08 + (5 - performance_rating) * 0.02))
+    
+    # The ease factor should not go below 1.3
+    if new_ease_factor < 1.3:
+        new_ease_factor = 1.3
+        
+    # Update the vocabulary item in the database
+    vocab_item.ease_factor = new_ease_factor
+    vocab_item.interval = new_interval
+    vocab_item.next_review_at = datetime.now(timezone.utc) + timedelta(days=new_interval)
+    
+    db.commit()
+    db.refresh(vocab_item)
+    return vocab_item

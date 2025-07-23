@@ -67,6 +67,11 @@ class ExplainResponse(BaseModel):
 # Schemas for Vocabulary
 # ==================================
 
+# This defines the shape of the request body for a review
+class ReviewRequest(BaseModel):
+    performance_rating: int
+
+
 class VocabularyBase(BaseModel):
     word: str
     definition: str
@@ -77,8 +82,13 @@ class VocabularyCreate(VocabularyBase):
 
 class Vocabulary(VocabularyBase):
     id: UUID
-    user_id: UUID # Updated from str to UUID
+    user_id: UUID
     created_at: datetime
+
+    # --- SRS FIELDS ---
+    next_review_at: datetime
+    interval: int
+    ease_factor: float
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -98,6 +108,9 @@ class ReadingActivity(ReadingActivityBase):
     user_id: UUID
 
     model_config = ConfigDict(from_attributes=True)
+
+class LogActivityRequest(BaseModel):
+    minutes: int
 
 
 # ==================================

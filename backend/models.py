@@ -1,9 +1,9 @@
-# backend/models.py
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey, Float, Date, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from .database import Base
+
 
 # --- ADD THE NEW ReadingActivity MODEL ---
 class ReadingActivity(Base):
@@ -89,4 +89,13 @@ class Vocabulary(Base):
     context_sentence = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    # --- SRS FIELDS ---
+    # The next date the user should review this word. Defaults to now.
+    next_review_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    # The number of days until the next review. Starts at 1 day.
+    interval = Column(Integer, default=1, nullable=False)
+    # A factor representing how easy the word is. Starts at a neutral 2.5.
+    ease_factor = Column(Float, default=2.5, nullable=False)
+
+    # Establish the relationship back to the User
     owner = relationship("User", back_populates="vocabulary")

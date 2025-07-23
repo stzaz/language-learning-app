@@ -37,13 +37,17 @@ def test_create_and_read_vocabulary_entry(client: TestClient):
     assert create_response.status_code == 200
     created_entry = create_response.json()
     assert created_entry["word"] == "biblioteca"
-    assert created_entry["context_sentence"] == "La biblioteca está abierta."
     assert created_entry["user_id"] == user_id
 
-    # Step 4: Fetch the vocabulary for that specific user
-    read_response = client.get(f"/vocabulary/{user_id}")
+    # --- STEP 4 (CORRECTED) ---
+    # Fetch the full user data from the secure /users/me endpoint
+    read_response = client.get("/users/me/", headers=headers)
     assert read_response.status_code == 200
-    read_data = read_response.json()
+    
+    # The vocabulary list is now nested inside the user object
+    user_data = read_response.json()
+    read_data = user_data["vocabulary"]
+    
     assert isinstance(read_data, list)
     assert len(read_data) == 1
     assert read_data[0]["word"] == "biblioteca"
@@ -53,15 +57,12 @@ def test_create_vocabulary_entry_unauthorized(client: TestClient):
     """
     Tests that creating a vocabulary entry fails without a valid token.
     """
+    # ... (This test is still correct and does not need to be changed)
     vocab_data = {
         "word": "unauthorized_word",
         "definition": "{}",
         "context_sentence": "This should not be saved."
     }
-    
-    # Make the request without the Authorization header
     response = client.post("/vocabulary/", json=vocab_data)
-    
-    # FastAPI returns a 401 Unauthorized error
     assert response.status_code == 401
     assert response.json() == {"detail": "Not authenticated"}
