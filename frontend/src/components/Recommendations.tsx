@@ -57,7 +57,11 @@ const Recommendations = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {recommendations.map((book) => (
-                        <BookCard key={book.id} book={book} />
+                        <BookCard
+                            key={book.id}
+                            book={book}
+                            isRecommendation={true} // Pass the new prop here
+                        />
                     ))}
                 </div>
             )}
