@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from uuid import UUID
 from datetime import date, datetime, timedelta, timezone
+from typing import Set
 from . import models, schemas, security
 
 
@@ -41,7 +43,7 @@ def authenticate_user(db: Session, email: str, password: str):
         return None
     return user
 
-# --- NEW: Reading Activity CRUD Function ---
+# --- Reading Activity CRUD Function ---
 def log_or_update_reading_activity(db: Session, user_id: UUID, minutes: int):
     """
     Finds today's reading activity for a user. If it exists, adds minutes to it.
@@ -49,31 +51,26 @@ def log_or_update_reading_activity(db: Session, user_id: UUID, minutes: int):
     """
     today = date.today()
     
-    # Check if an activity record for today already exists
     activity = db.query(models.ReadingActivity).filter(
         models.ReadingActivity.user_id == user_id,
         models.ReadingActivity.date == today
     ).first()
     
     if activity:
-        # If it exists, simply add the new minutes
         activity.minutes_read += minutes
-        print(f"Updating activity for user {user_id} on {today}. New total: {activity.minutes_read} minutes.")
     else:
-        # If it doesn't exist, create a new entry
         activity = models.ReadingActivity(
             user_id=user_id,
             date=today,
             minutes_read=minutes
         )
         db.add(activity)
-        print(f"Creating new activity for user {user_id} on {today} with {minutes} minutes.")
         
     db.commit()
     db.refresh(activity)
     return activity
 
-# --- NEW: User Stats Calculation Function ---
+# --- User Stats Calculation Function ---
 def get_user_stats(db: Session, user: models.User) -> schemas.UserStats:
     """
     Calculates the reading streak, total words learned, and total minutes read for a user.
@@ -81,39 +78,33 @@ def get_user_stats(db: Session, user: models.User) -> schemas.UserStats:
     today = date.today()
     yesterday = today - timedelta(days=1)
     
-    # 1. Calculate Total Words Learned
     total_words_learned = len(user.vocabulary)
     
-    # 2. Calculate Total Minutes Read
-    total_minutes_read = sum(activity.minutes_read for activity in user.reading_history)
+    # Use a query to sum up minutes for better performance with large histories
+    total_minutes_read = db.query(func.sum(models.ReadingActivity.minutes_read)).filter(
+        models.ReadingActivity.user_id == user.id
+    ).scalar() or 0
     
-    # 3. Calculate Reading Streak
     reading_streak = 0
     
-    # Get all reading dates for the user, sorted from most recent
     recent_activity_dates = sorted(
         [activity.date for activity in user.reading_history],
         reverse=True
     )
     
     if not recent_activity_dates:
-        # If there's no activity, all stats are 0
         return schemas.UserStats(
             reading_streak=0,
             total_words_learned=total_words_learned,
             total_minutes_read=total_minutes_read
         )
         
-    # Check if the most recent activity was today or yesterday
     if recent_activity_dates[0] == today or recent_activity_dates[0] == yesterday:
         reading_streak = 1
-        # Loop through the rest of the dates to find consecutive days
         for i in range(len(recent_activity_dates) - 1):
-            # Check if the next date is exactly one day before the current one
             if recent_activity_dates[i] - recent_activity_dates[i+1] == timedelta(days=1):
                 reading_streak += 1
             else:
-                # If the chain is broken, stop counting
                 break
                 
     return schemas.UserStats(
@@ -122,55 +113,64 @@ def get_user_stats(db: Session, user: models.User) -> schemas.UserStats:
         total_minutes_read=total_minutes_read
     )
 
-# --- NEW: User-Specific Book Recommendation Logic ---
+# --- NEW: Comprehensible Input Recommendation Logic (Replaces old function) ---
 def get_user_recommendations(db: Session, user: models.User, limit: int = 3) -> list[models.Book]:
     """
-    Generates book recommendations for a specific user.
-    It finds the user's most-progressed book and recommends similar ones.
+    Generates book recommendations based on the user's vocabulary knowledge,
+    aiming for the optimal 98% "comprehensible input" zone.
     """
-    # 1. Find the user's most-progressed book link.
-    source_link = db.query(models.UserBookLink).filter(
-        models.UserBookLink.user_id == user.id
-    ).order_by(models.UserBookLink.progress.desc()).first()
+    
+    # 1. Get the set of words the user has learned.
+    user_known_words: Set[str] = {v.word.lower() for v in user.vocabulary}
 
-    if not source_link:
-        # Fallback: If user has no progress, maybe recommend popular books later.
-        # For now, return an empty list.
-        return []
+    # 2. Handle the "cold start" problem for new users.
+    if not user_known_words:
+        print("User has no vocabulary. Recommending easiest books.")
+        # Fallback: Recommend the easiest books available.
+        # Ideally, this would also filter by the user's target language.
+        return db.query(models.Book).order_by(models.Book.difficulty_level.asc()).limit(limit).all()
 
-    source_book = source_link.book
+    # 3. Get IDs of all books the user has in their library to exclude them.
+    user_book_ids_in_library = {link.book_id for link in user.books_in_library}
 
-    # 2. Get IDs of all books the user has in their library to exclude them.
-    user_book_ids = {link.book_id for link in user.books_in_library}
-
-    # 3. Get all candidate books, excluding the source and user's library books.
+    # 4. Get all candidate books, excluding those already in the user's library.
     candidate_books = db.query(models.Book).filter(
-        models.Book.id != source_book.id,
-        models.Book.id.notin_(user_book_ids)
+        models.Book.id.notin_(user_book_ids_in_library)
     ).all()
 
-    # 4. Score the candidate books
+    # 5. Score the candidate books based on vocabulary coverage.
     recommendation_scores = []
+    
+    OPTIMAL_COVERAGE = 0.98  # Target 98% known words
+
     for book in candidate_books:
-        score = 0
-        # Score based on genre match
-        if book.genre and book.genre == source_book.genre:
-            score += 2
-        # Score based on difficulty level
-        difficulty_difference = abs(book.difficulty_level - source_book.difficulty_level)
-        if difficulty_difference == 0:
-            score += 2
-        elif difficulty_difference == 1:
-            score += 1
+        # The book.unique_words relationship gives us all Word objects for the book.
+        book_words: Set[str] = {w.text.lower() for w in book.unique_words}
+        
+        if not book_words:
+            continue # Skip books with no vocabulary analyzed.
 
-        if score > 0:
-            recommendation_scores.append((score, book))
+        # Calculate how many of the book's words the user knows.
+        known_words_in_book = user_known_words.intersection(book_words)
+        
+        # Calculate the lexical coverage percentage.
+        coverage = len(known_words_in_book) / len(book_words)
+        
+        # The score is how close the coverage is to our optimal target.
+        # A smaller difference is better, so we subtract from 1.
+        score = 1.0 - abs(OPTIMAL_COVERAGE - coverage)
+        
+        recommendation_scores.append((score, book))
+        print(f"Book: '{book.title}', Coverage: {coverage:.2%}, Score: {score:.4f}")
 
-    # 5. Sort by score and return the top results
+
+    # 6. Sort by score (descending) and return the top results.
     recommendation_scores.sort(key=lambda x: x[0], reverse=True)
+    
     recommended_books = [book for score, book in recommendation_scores]
     
     return recommended_books[:limit]
+
 
 # --- Book CRUD Functions ---
 
@@ -194,9 +194,6 @@ def get_content_for_book(db: Session, book_id: UUID):
 # --- Vocabulary CRUD Functions ---
 
 def create_vocabulary_entry(db: Session, vocabulary: schemas.VocabularyCreate, user_id: UUID):
-    """
-    Create a new vocabulary entry for a specific user.
-    """
     db_vocab_entry = models.Vocabulary(**vocabulary.model_dump(), user_id=user_id)
     db.add(db_vocab_entry)
     db.commit()
@@ -204,49 +201,27 @@ def create_vocabulary_entry(db: Session, vocabulary: schemas.VocabularyCreate, u
     return db_vocab_entry
 
 def get_all_vocabulary(db: Session, skip: int = 0, limit: int = 100):
-    """
-    Retrieves all vocabulary entries.
-    """
     return db.query(models.Vocabulary).order_by(models.Vocabulary.created_at.desc()).offset(skip).limit(limit).all()
 
 def get_vocabulary_for_user(db: Session, user_id: UUID):
-    """
-    Retrieves all vocabulary for a specific user.
-    """
     return db.query(models.Vocabulary).filter(models.Vocabulary.user_id == user_id).order_by(models.Vocabulary.created_at.desc()).all()
 
-# --- NEW: SRS Logic Function ---
-def update_vocabulary_srs(db: Session, vocab_item: models.Vocabulary, performance_rating: int):
-    """
-    Updates the Spaced Repetition System (SRS) data for a vocabulary item
-    based on the user's performance.
 
-    Args:
-        vocab_item: The vocabulary item to update.
-        performance_rating: A rating of how well the user knew the word (e.g., 0-5).
-                          A rating of 3 or higher means the user remembered the word.
-    """
+# --- SRS Logic Function ---
+def update_vocabulary_srs(db: Session, vocab_item: models.Vocabulary, performance_rating: int):
     if performance_rating >= 3:
-        # User remembered the word
         if vocab_item.interval == 1:
-            # First time remembered correctly, interval becomes 6 days
             new_interval = 6
         else:
-            # Subsequent correct recalls
             new_interval = round(vocab_item.interval * vocab_item.ease_factor)
     else:
-        # User forgot the word, reset the interval
         new_interval = 1
 
-    # Update the ease factor based on performance
-    # This is the core of the SM-2 algorithm
     new_ease_factor = vocab_item.ease_factor + (0.1 - (5 - performance_rating) * (0.08 + (5 - performance_rating) * 0.02))
     
-    # The ease factor should not go below 1.3
     if new_ease_factor < 1.3:
         new_ease_factor = 1.3
         
-    # Update the vocabulary item in the database
     vocab_item.ease_factor = new_ease_factor
     vocab_item.interval = new_interval
     vocab_item.next_review_at = datetime.now(timezone.utc) + timedelta(days=new_interval)
