@@ -105,9 +105,9 @@ export const saveVocabularyWord = async (
     return response.json();
 };
 
-export const getPracticeVocabulary = async (token: string): Promise<VocabularyItem[]> => {
+export const getDueVocabulary = async (token: string): Promise<VocabularyItem[]> => {
     // This now fetches the user's specific vocabulary, not the public list.
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vocabulary/due-for-review`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -117,8 +117,29 @@ export const getPracticeVocabulary = async (token: string): Promise<VocabularyIt
         throw new Error('Failed to fetch your vocabulary. Please try logging in again.');
     }
 
-    const userData: User = await response.json();
-    return userData.vocabulary || []; // Return the vocabulary list from the user object
+
+    return response.json();// Return the vocabulary list from the user object
+};
+
+// --- NEW: Function to submit a review for a word ---
+export const reviewWord = async (
+    token: string,
+    wordId: string,
+    performance_rating: number
+): Promise<VocabularyItem> => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vocabulary/${wordId}/review`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ performance_rating }),
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to update review status.");
+    }
+    return response.json();
 };
 
 export const fetchUserStats = async (token: string): Promise<UserStats> => {

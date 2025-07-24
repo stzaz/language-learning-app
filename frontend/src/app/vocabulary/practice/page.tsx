@@ -1,12 +1,13 @@
-// frontend/src/app/vocabulary/practice/page.tsx
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Flashcard from '@/components/Flashcard';
-import { Check, X } from 'lucide-react'; import Link from 'next/link';
+import { Check, X } from 'lucide-react';
+import Link from 'next/link';
 import { VocabularyItem } from '@/types';
 import { useAuth } from '@/providers/AuthProvider';
-import { getPracticeVocabulary } from '@/lib/api';
+// --- 1. Import the new, smarter API functions ---
+import { getDueVocabulary, reviewWord } from '@/lib/api';
 
 const PracticePage = () => {
     const { user, token } = useAuth();
@@ -17,20 +18,19 @@ const PracticePage = () => {
     const [error, setError] = useState<string | null>(null);
 
     // State for the practice session results
-    const [knownWords, setKnownWords] = useState<string[]>([]);
-    const [reviewWords, setReviewWords] = useState<string[]>([]);
+    const [knownCount, setKnownCount] = useState<number>(0);
+    const [reviewCount, setReviewCount] = useState<number>(0);
     const [isSessionComplete, setIsSessionComplete] = useState(false);
 
     // --- Data Fetching ---
     useEffect(() => {
-        // Only fetch if we have a token
         if (token) {
-            const fetchVocabulary = async () => {
+            const fetchDueVocabulary = async () => {
                 setLoading(true);
                 setError(null);
                 try {
-                    // 4. Call the authenticated API function with the token
-                    const data = await getPracticeVocabulary(token);
+                    // --- 2. Call the new function to get only due words ---
+                    const data = await getDueVocabulary(token);
                     setVocabulary(data);
                 } catch (err) {
                     setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -38,14 +38,12 @@ const PracticePage = () => {
                     setLoading(false);
                 }
             };
-            fetchVocabulary();
+            fetchDueVocabulary();
         } else {
-            // If there's no token, don't try to load
             setLoading(false);
         }
-    }, [token]); // The effect now depends on the token
+    }, [token]);
 
-    // Memoize the current item to prevent re-renders
     const currentItem = useMemo(() => {
         if (!vocabulary || vocabulary.length === 0) return null;
         return vocabulary[currentIndex];
@@ -56,30 +54,43 @@ const PracticePage = () => {
         if (currentIndex < vocabulary.length - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
-            // End of the session
             setIsSessionComplete(true);
         }
     };
 
-    const handleMarkAsKnown = () => {
-        if (currentItem) {
-            setKnownWords([...knownWords, currentItem.word]);
-            handleNextCard();
-        }
-    };
+    // --- 3. Refactor the review handlers to call the API ---
+    const handleReview = async (performanceRating: 1 | 5) => {
+        if (!currentItem || !token) return;
 
-    const handleMarkForReview = () => {
-        if (currentItem) {
-            setReviewWords([...reviewWords, currentItem.word]);
+        try {
+            // Call the new API endpoint to update the word's SRS data
+            await reviewWord(token, currentItem.id, performanceRating);
+
+            // Update local session stats
+            if (performanceRating === 5) {
+                setKnownCount(knownCount + 1);
+            } else {
+                setReviewCount(reviewCount + 1);
+            }
+
+            // Move to the next card
             handleNextCard();
+        } catch (err) {
+            console.error("Failed to submit review:", err);
+            // Optionally, show an error to the user
+            setError("Could not save review. Please try again.");
         }
     };
 
     const handleRestartSession = () => {
+        // This component will automatically refetch due words on the next render
+        // because the user is still logged in. We just need to reset the state.
         setCurrentIndex(0);
-        setKnownWords([]);
-        setReviewWords([]);
+        setKnownCount(0);
+        setReviewCount(0);
         setIsSessionComplete(false);
+        // We can trigger a re-fetch manually if needed, but a page refresh would also work
+        window.location.reload();
     };
 
     // --- Render Logic ---
@@ -87,7 +98,6 @@ const PracticePage = () => {
         if (loading) return <p className="text-center text-slate-500">Loading your vocabulary...</p>;
         if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
-        // 5. Add a check for a logged-out user
         if (!user) {
             return (
                 <div className="text-center">
@@ -96,25 +106,28 @@ const PracticePage = () => {
                 </div>
             );
         }
-        if (vocabulary.length === 0) {
+
+        // --- 4. Updated UI text for a more accurate message ---
+        if (vocabulary.length === 0 && !isSessionComplete) {
             return (
                 <div className="text-center">
-                    <p className="text-slate-500 mb-4">You haven&apos;t saved any words yet.</p>
-                    <Link href="/" className="text-amber-600 hover:underline">Go back to the library to start reading.</Link>
+                    <p className="text-slate-500 mb-4">You have no words due for review right now. Great work!</p>
+                    <Link href="/" className="text-amber-600 hover:underline">Go back to the library.</Link>
                 </div>
             );
         }
+
         if (isSessionComplete) {
             return (
                 <div className="text-center bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg">
                     <h2 className="text-2xl font-bold font-serif mb-4">Session Complete!</h2>
-                    <p className="text-lg">You knew <strong className="text-green-500">{knownWords.length}</strong> words.</p>
-                    <p className="text-lg">You marked <strong className="text-yellow-500">{reviewWords.length}</strong> words for review.</p>
+                    <p className="text-lg">You knew <strong className="text-green-500">{knownCount}</strong> words.</p>
+                    <p className="text-lg">You marked <strong className="text-yellow-500">{reviewCount}</strong> words for review.</p>
                     <button
                         onClick={handleRestartSession}
                         className="mt-6 px-6 py-3 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-md"
                     >
-                        Practice Again
+                        Practice Again Later
                     </button>
                 </div>
             );
@@ -122,7 +135,7 @@ const PracticePage = () => {
         if (currentItem) {
             return <Flashcard item={currentItem} />;
         }
-        return null; // Should not happen
+        return null;
     };
 
     return (
@@ -142,14 +155,14 @@ const PracticePage = () => {
                 {!isSessionComplete && vocabulary.length > 0 && (
                     <div className="grid grid-cols-2 gap-4 mt-8">
                         <button
-                            onClick={handleMarkForReview}
+                            onClick={() => handleReview(1)} // Send rating of 1 for "Review Again"
                             className="px-6 py-4 rounded-lg bg-yellow-400 text-yellow-900 hover:bg-yellow-500 transition-colors shadow-md flex items-center justify-center gap-2 font-semibold"
                         >
                             <X size={20} />
                             Review Again
                         </button>
                         <button
-                            onClick={handleMarkAsKnown}
+                            onClick={() => handleReview(5)} // Send rating of 5 for "I Knew This"
                             className="px-6 py-4 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors shadow-md flex items-center justify-center gap-2 font-semibold"
                         >
                             <Check size={20} />
