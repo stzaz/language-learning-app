@@ -6,7 +6,7 @@ from typing import Set
 from . import models, schemas, security
 
 
-# --- User CRUD Functions (Updated for Email) ---
+# --- User CRUD Functions ---
 
 def get_user(db: Session, user_id: UUID):
     """
@@ -113,7 +113,7 @@ def get_user_stats(db: Session, user: models.User) -> schemas.UserStats:
         total_minutes_read=total_minutes_read
     )
 
-# --- NEW: Comprehensible Input Recommendation Logic (Replaces old function) ---
+# ---  Comprehensible Input Recommendation Logic  ---
 def get_user_recommendations(db: Session, user: models.User, limit: int = 3) -> list[models.Book]:
     """
     Generates book recommendations based on the user's vocabulary knowledge,
@@ -229,3 +229,19 @@ def update_vocabulary_srs(db: Session, vocab_item: models.Vocabulary, performanc
     db.commit()
     db.refresh(vocab_item)
     return vocab_item
+
+# --- Event CRUD Function ---
+def create_event(db: Session, user_id: UUID, event: schemas.EventCreate) -> models.Event:
+    """
+    Logs a new event for a specific user.
+    """
+    db_event = models.Event(
+        user_id=user_id,
+        event_name=event.event_name,
+        properties=event.properties
+    )
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    print(f"Logged event '{event.event_name}' for user {user_id}")
+    return db_event

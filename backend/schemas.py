@@ -2,7 +2,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from uuid import UUID
 from datetime import datetime, date
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 # ==================================
 # Schemas for BookContent
@@ -140,11 +140,10 @@ class User(UserBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-# --- Add this new schema for the login response ---
+
 # ==================================
 # Schemas for Token
 # ==================================
-# --- Add this new schema for the token's payload ---
 class TokenData(BaseModel):
     email: Optional[EmailStr] = None
 
@@ -165,5 +164,19 @@ class UserBookLinkCreate(UserBookLinkBase):
 class UserBookLink(UserBookLinkBase):
     user_id: UUID
     book_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+
+# ==================================
+#  Schemas for Analytics Events
+# ==================================
+class EventCreate(BaseModel):
+    event_name: str
+    properties: Optional[Dict[str, Any]] = None
+
+class Event(EventCreate):
+    id: UUID
+    user_id: UUID
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

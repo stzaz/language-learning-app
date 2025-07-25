@@ -1,11 +1,25 @@
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, func, Text, ForeignKey, Float, Date, UniqueConstraint, Table
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID 
+from sqlalchemy.types import JSON # Import generic JSON
 from .database import Base
 
 
-# --- NEW: BookWordLink Association Table ---
+# --- Event Model for Analytics ---
+class Event(Base):
+    __tablename__ = 'events'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    event_name = Column(String, index=True, nullable=False)
+    properties = Column(JSON, nullable=True) # Using JSONB for flexible event properties
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+
+
+# --- BookWordLink Association Table ---
 # This table creates the many-to-many relationship between books and their unique words.
 BookWordLink = Table('book_word_links', Base.metadata,
     Column('book_id', UUID(as_uuid=True), ForeignKey('books.id'), primary_key=True),
@@ -13,7 +27,7 @@ BookWordLink = Table('book_word_links', Base.metadata,
 )
 
 
-# --- NEW: Word Model ---
+# --- Word Model ---
 # This table stores a master list of every unique word across all books.
 class Word(Base):
     __tablename__ = 'words'

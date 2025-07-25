@@ -184,3 +184,15 @@ def review_vocabulary_word_endpoint(
         vocab_item=vocab_item,
         performance_rating=request.performance_rating
     )
+
+# --- Analytics Endpoint ---
+@app.post("/events/log", response_model=schemas.Event, tags=["Analytics"])
+def log_event_endpoint(
+    event: schemas.EventCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(security.get_current_user)
+):
+    """
+    Logs a generic user event for analytics purposes.
+    """
+    return crud.create_event(db=db, user_id=current_user.id, event=event)
