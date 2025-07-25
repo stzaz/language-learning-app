@@ -6,8 +6,8 @@ import { Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { VocabularyItem } from '@/types';
 import { useAuth } from '@/providers/AuthProvider';
-// --- 1. Import the new, smarter API functions ---
-import { getDueVocabulary, reviewWord } from '@/lib/api';
+// 1. Import logEvent alongside the other API functions
+import { getDueVocabulary, reviewWord, logEvent } from '@/lib/api';
 
 const PracticePage = () => {
     const { user, token } = useAuth();
@@ -17,21 +17,23 @@ const PracticePage = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // State for the practice session results
     const [knownCount, setKnownCount] = useState<number>(0);
     const [reviewCount, setReviewCount] = useState<number>(0);
     const [isSessionComplete, setIsSessionComplete] = useState(false);
 
-    // --- Data Fetching ---
+    // --- Data Fetching & Event Logging ---
     useEffect(() => {
         if (token) {
             const fetchDueVocabulary = async () => {
                 setLoading(true);
                 setError(null);
                 try {
-                    // --- 2. Call the new function to get only due words ---
                     const data = await getDueVocabulary(token);
                     setVocabulary(data);
+                    // 2. Log an event when a practice session starts
+                    if (data.length > 0) {
+                        logEvent(token, 'practice_session_started', { word_count: data.length });
+                    }
                 } catch (err) {
                     setError(err instanceof Error ? err.message : 'An unknown error occurred');
                 } finally {
@@ -54,46 +56,42 @@ const PracticePage = () => {
         if (currentIndex < vocabulary.length - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
+            // 3. Log an event when the session is completed, before setting the state
+            if (token) {
+                logEvent(token, 'practice_session_completed', {
+                    known_count: knownCount,
+                    review_count: reviewCount,
+                    total_words: vocabulary.length
+                });
+            }
             setIsSessionComplete(true);
         }
     };
 
-    // --- 3. Refactor the review handlers to call the API ---
     const handleReview = async (performanceRating: 1 | 5) => {
         if (!currentItem || !token) return;
 
         try {
-            // Call the new API endpoint to update the word's SRS data
             await reviewWord(token, currentItem.id, performanceRating);
 
-            // Update local session stats
             if (performanceRating === 5) {
-                setKnownCount(knownCount + 1);
+                setKnownCount(prev => prev + 1);
             } else {
-                setReviewCount(reviewCount + 1);
+                setReviewCount(prev => prev + 1);
             }
 
-            // Move to the next card
             handleNextCard();
         } catch (err) {
             console.error("Failed to submit review:", err);
-            // Optionally, show an error to the user
             setError("Could not save review. Please try again.");
         }
     };
 
     const handleRestartSession = () => {
-        // This component will automatically refetch due words on the next render
-        // because the user is still logged in. We just need to reset the state.
-        setCurrentIndex(0);
-        setKnownCount(0);
-        setReviewCount(0);
-        setIsSessionComplete(false);
-        // We can trigger a re-fetch manually if needed, but a page refresh would also work
         window.location.reload();
     };
 
-    // --- Render Logic ---
+    // --- Render Logic (no changes needed here) ---
     const renderContent = () => {
         if (loading) return <p className="text-center text-slate-500">Loading your vocabulary...</p>;
         if (error) return <p className="text-center text-red-500">Error: {error}</p>;
@@ -107,7 +105,6 @@ const PracticePage = () => {
             );
         }
 
-        // --- 4. Updated UI text for a more accurate message ---
         if (vocabulary.length === 0 && !isSessionComplete) {
             return (
                 <div className="text-center">
@@ -155,14 +152,14 @@ const PracticePage = () => {
                 {!isSessionComplete && vocabulary.length > 0 && (
                     <div className="grid grid-cols-2 gap-4 mt-8">
                         <button
-                            onClick={() => handleReview(1)} // Send rating of 1 for "Review Again"
+                            onClick={() => handleReview(1)}
                             className="px-6 py-4 rounded-lg bg-yellow-400 text-yellow-900 hover:bg-yellow-500 transition-colors shadow-md flex items-center justify-center gap-2 font-semibold"
                         >
                             <X size={20} />
                             Review Again
                         </button>
                         <button
-                            onClick={() => handleReview(5)} // Send rating of 5 for "I Knew This"
+                            onClick={() => handleReview(5)}
                             className="px-6 py-4 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors shadow-md flex items-center justify-center gap-2 font-semibold"
                         >
                             <Check size={20} />

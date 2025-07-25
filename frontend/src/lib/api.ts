@@ -121,7 +121,7 @@ export const getDueVocabulary = async (token: string): Promise<VocabularyItem[]>
     return response.json();// Return the vocabulary list from the user object
 };
 
-// --- NEW: Function to submit a review for a word ---
+// --- Function to submit a review for a word ---
 export const reviewWord = async (
     token: string,
     wordId: string,
@@ -167,7 +167,7 @@ export const logReadingActivity = async (token: string, minutes: number): Promis
     });
 };
 
-// --- NEW: Recommendation Function ---
+// --- Recommendation Function ---
 export const getUserRecommendations = async (token: string): Promise<Book[]> => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/recommendations`, {
         headers: {
@@ -180,4 +180,27 @@ export const getUserRecommendations = async (token: string): Promise<Book[]> => 
         return [];
     }
     return response.json();
+};
+
+// --- Analytics Event Logging Function ---
+export const logEvent = async (
+    token: string,
+    eventName: string,
+    properties: object = {}
+): Promise<void> => {
+    try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/log`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ event_name: eventName, properties }),
+        });
+        // We can fire-and-forget this, no need to block the UI
+        console.log(`Logged event: ${eventName}`);
+    } catch (error) {
+        // It's important that analytics failures do not break the user experience.
+        console.error("Failed to log event:", error);
+    }
 };

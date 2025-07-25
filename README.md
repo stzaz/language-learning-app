@@ -46,11 +46,11 @@ Our development is planned in phases to build a rich, comprehensive platform.
 - **Phase 2: Engagement & Discovery** _(In Progress)_
 
   - ✅ **Stats Dashboard**: Live tracking of reading streaks, words learned, and minutes read.
-  - ⏳ **Activity Logging**: Implementing the timer to log active reading sessions.
-  - ⏳ **Book Readiness Score**: A metric to help users choose books within their "comprehensible input" zone.
-  - ⏳ **Smart Recommendations**: Personalized book suggestions based on difficulty level and vocabulary overlap.
+  - ✅ **Activity Logging**: Implementing the timer to log active reading sessions.
+  - ✅ **Book Readiness Score**: A metric to help users choose books within their "comprehensible input" zone.
+  - ✅ **Smart Recommendations**: Personalized book suggestions based on difficulty level and vocabulary overlap.
+  - ✅ **Practice Tools**: Context-based flashcard quizzes using a Spaced Repetition System (SRS).
   - ⏳ **Certification Tracking**: DELE and SIELE vocabulary coverage analysis.
-  - ◻️ **Practice Tools**: Context-based flashcard quizzes using a Spaced Repetition System (SRS).
 
 - **Phase 3: Community & AI Innovation** _(Upcoming)_
   - ◻️ **AI Learning Pathfinder**: An advanced algorithm to generate personalized reading sequences that maintain the optimal 95-98% comprehension rate, creating the most efficient path to exam readiness.
